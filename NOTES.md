@@ -70,10 +70,12 @@ Stop and ask jbrest for a Claude Code review at each of these points:
 1. Stage 0 review settled on 2 November in CODEX-BRIEF.md Phase 2.
 2. After A1, before A2; then after A2 (power source moved and adapted). This sets the pattern
    for every later condition.
-3. At the end of Stage A.
-4. Before B1 experiments, and after B1 results before PowerControl is built.
-5. Before any installed test in Stage D.
-6. Any time an invariant in MIGRATION-PLAN.md would have to be broken, or an
+3. After A4 (CPU load, the first condition with smoothing state, TTLCache and
+   S4 comments).
+4. At the end of Stage A.
+5. Before B1 experiments, and after B1 results before PowerControl is built.
+6. Before any installed test in Stage D.
+7. Any time an invariant in MIGRATION-PLAN.md would have to be broken, or an
    approach has failed twice.
 
 ## Upstream fix candidates

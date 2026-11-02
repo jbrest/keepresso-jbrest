@@ -260,6 +260,29 @@ For the A2 checkpoint, with no separate commit needed before then:
    - Never rename Keepresso's own types or members to make room. Shared code
      adapts to Keepresso's names, not the other way round.
 
+## Claude Code review of A2 (2 November 2026)
+
+A2 is accepted as the pattern for later conditions. Behavior is preserved
+exactly; the compatibility test target comparing every provider and charging
+combination with the original predicates is a good model for A3 onward.
+
+Before or alongside A3:
+
+1. **Keep upstream doc comments on retained Keepresso API.** A2 deleted
+   gyorgysh's comments on `PowerSourceMonitoring.current` ("Reading is cheap;
+   callers may poll it.") and `IOKitPowerSourceMonitor` (the threading note).
+   Restore them, adjusted only where the move made them untrue. Where a
+   Keepresso type or member stays, its upstream comments stay too. This keeps
+   the diff he will review small and keeps information he wrote.
+2. **New checkpoint after A4.** Power source has no state, so the hard pattern
+   questions arrive with CPU load: smoothing state, `TTLCache`, `@testable`
+   access to `step`, and the first S4 comments. Stop after A4 for a Claude Code
+   review before A5. NOTES.md lists it.
+
+Noted for Stage C, no action now: `PowerSourceObserving` and the reader are not
+`Sendable`. That's fine for Keepresso's main-actor use. The SH service loop
+should decide its isolation before relying on them across threads.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
