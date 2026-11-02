@@ -3,7 +3,8 @@
 Status: acceptance reference for Stages A to D of
 [MIGRATION-PLAN.md](MIGRATION-PLAN.md). Carried forward on 2 November 2026 from
 the archived `docs/MODULAR-VALIDATION-PLAN.md` (originally generated with OpenAI
-Codex under jbrest's direction). Rows about Keepresso parity apply from Stage E.
+Codex under jbrest's direction). Revised for decision P7: Keepresso parity checks
+for rules and observations apply from Stage A.
 
 ## Responsibility and evidence
 
@@ -32,12 +33,15 @@ and fail when inspection fails; it must not convert an inspection error into
 
 ## Automated acceptance matrix
 
-Stages A to D (shared modules and SH):
+Stages A to D (shared modules, Keepresso wrappers and SH):
 
 | Area | Required check | Evidence to retain |
 | --- | --- | --- |
-| Keepresso untouched | Invariant I1 diff is empty | Command output per stage |
-| Provenance | Every ported unit listed in SOURCE-INVENTORY.md with source and revision | Inventory plus the provenance check after each rebase |
+| Keepresso UI and helper untouched | Invariant I1 diff is empty; only listed KeepressoCore files changed | Command output per commit series |
+| Keepresso parity | Full Keepresso test suite passes at or above the Stage 0 count after every moved condition; no existing test deleted | Test logs with counts |
+| Settings | Existing saved rules, import/export, malformed inputs and raw values decode identically through the wrappers | Fixtures captured from rev U before each move |
+| Two-state adapter | Each condition's missing-reading behavior matches the O11 table | One test per row |
+| Provenance | Every seeded or ported unit listed in SOURCE-INVENTORY.md with source and revision | Inventory plus the provenance check after each rebase |
 | Module boundaries | Each target builds with only its declared dependencies | `swift build` per target |
 | Conditions | Ported semantics match Keepresso: matching, smoothing, hysteresis, schedule boundaries, any/all; three-state handling of unavailable readings | Ported Keepresso tests plus new three-state tests |
 | Observations | Readers report unavailable instead of a default value; SSH pre-auth connections are not sessions | Fixture tests plus read-only smoke runs on a real Mac |
@@ -45,15 +49,13 @@ Stages A to D (shared modules and SH):
 | Service | Signature checks, administrator checks, protocol negotiation and real errors | Client/helper identities and transport traces |
 | Packaging | SH app and helper signing, identifiers and embedded plist consistent | Build records and signature verification |
 
-Stage E (Keepresso adoption, later):
+Stage E (Keepresso's helper adopts PowerControl and ServiceSupport, later):
 
 | Area | Required check | Evidence to retain |
 | --- | --- | --- |
-| Settings | Existing defaults, import/export, malformed inputs and old formats remain equivalent | Versioned fixtures and decoded/output comparisons |
-| Conditions | Every Keepresso rule retains matching, grace, smoothing, scope, any/all and time/DST behavior through the two-state adapter | Existing tests plus adapter equivalence cases |
-| Session behavior | Manual/timed/trigger/lease precedence, safety pauses, reminders and end actions unchanged | Fixed-clock state/effect traces |
+| Helper behavior | Wake schedules, closed-display hold and restore, fans, priority boost and recovery unchanged | Existing helper tests plus an installed Keepresso run |
+| Protocol | Keepresso's XPC protocol version and selectors unchanged | Contract tests |
 | Integrations | CLI exits/output, MCP protocol, widget commands, URLs and agent hooks unchanged | Fixture requests/replies and consumer builds |
-| UI/localization | No edits to UI files; all 15 languages unchanged | Diff of app-shell sources plus localization checks |
 
 ## Installed acceptance matrix (Stage D)
 

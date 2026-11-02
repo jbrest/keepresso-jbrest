@@ -7,8 +7,9 @@ Date: 2 November 2026. Branch: `sh/foundation`, created from `upstream/main`
 Sleepless Hollow (SH) is a standalone macOS app plus root background service
 that keeps a Mac awake on conditions, including when no one is logged in. It is
 built in this fork of Keepresso on a set of shared modules carved out of
-Keepresso's code. Keepresso itself stays byte-identical to upstream until a
-later, separately approved stage.
+Keepresso's code. Keepresso adopts the rule and observation modules as they are
+built, through wrappers and a two-state adapter, with no UI changes. Its
+privileged helper is left alone until a later, separately approved stage.
 
 ## Reading order
 

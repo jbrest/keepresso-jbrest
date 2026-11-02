@@ -1,7 +1,8 @@
 # Sleepless Hollow: source inventory and provenance
 
-Date: 2 November 2026. Status: planning inventory. Fill in the "Ported at"
-column as work lands (invariant I3 in MIGRATION-PLAN.md).
+Date: 2 November 2026, revised the same day (decision P7). Status: planning
+inventory. Fill in the "Done" table at the end as work lands (invariants I3 and
+I4 in MIGRATION-PLAN.md).
 
 Revisions:
 - `U` = `upstream/main` at `7ea73a6`.
@@ -12,33 +13,45 @@ Line numbers are hints and may drift, so search by name. Port types:
 - **adapted**: same behavior, restructured.
 - **redesigned**: written against the new design, using the source as reference.
 
-## Seed sources from upstream Keepresso (read-only)
+## Moved out of KeepressoCore in Stage A (with wrappers)
 
-These files are never edited before Stage E. The shared modules copy behavior
-out of them.
+These files change in Stage A. The logic moves to the shared module, and the
+Keepresso type stays behind as a wrapper with its two-state adapter. Labels,
+localization, factories, the `Trigger` protocol and saved Codable shapes stay in
+`KeepressoCore`.
+
+| Source (rev U) | What moves | Destination | What stays in KeepressoCore |
+| --- | --- | --- | --- |
+| `Trigger.swift` | `PowerSourceTrigger.Match` matching (~L52-95); `ProcessTrigger` matching (~L198); `CombineMode` (~L313) | RuleModel, RuleEvaluation | Trigger classes as wrappers; labels; `Match` raw values (alias or mapped) |
+| `TimeWindow.swift` | `TimeWindowRule` value and `TimeWindowTrigger` boundary logic | RuleModel, RuleEvaluation | Codable shape, labels and day summaries; trigger wrapper |
+| `CPULoad.swift` | `HostCPULoadReader`; smoothing state machine and constants | SystemObservations; RuleEvaluation | `CPULoadTrigger` wrapper |
+| `NetworkThroughput.swift` | `GetifaddrsThroughputReader`; smoothing, units and release fraction | SystemObservations; RuleEvaluation | `NetworkThroughputTrigger` wrapper |
+| `PowerSource.swift` | `PowerSourceSnapshot` and reader | RuleModel; SystemObservations | Type alias if needed |
+| `ProcessList.swift`, `SharedPSSnapshot.swift` | Process listing and parsing | SystemObservations | Type aliases or wrappers |
+| `Thermal.swift`, `BatteryLowPower.swift` | Readings only, if O8 adopts safety | SystemObservations | `ThermalGuard` and its policy |
+
+Tests: the originals in `Tests/KeepressoCoreTests` keep running against the
+wrappers unchanged. Pure-logic cases may also be copied into the shared module's
+tests. `PresetTests` must keep passing; the upstream SSH preset itself is not
+changed in Stage A (see F4).
+
+## Seeded from Keepresso's helper code (read-only until Stage E)
+
+These files are not edited before Stage E. PowerControl and ServiceSupport copy
+behavior from them, with provenance recorded (I4) and checked after each rebase
+(I5).
 
 | Source (rev U) | What is taken | Destination | Port type |
 | --- | --- | --- | --- |
-| `KeepressoCore/Trigger.swift` | `PowerSourceTrigger.Match` cases, raw values and matching (~L52-95); `ProcessTrigger` matching (~L198); `CombineMode` and empty-rule behavior (~L313) | RuleModel, RuleEvaluation | adapted |
-| `KeepressoCore/TimeWindow.swift` | `TimeWindowRule` fields and `TimeWindowTrigger` boundaries | RuleModel, RuleEvaluation | adapted |
-| `KeepressoCore/CPULoad.swift` | `HostCPULoadReader` (reader); smoothing state machine and constants | SystemObservations; RuleEvaluation | verbatim reader, adapted state machine |
-| `KeepressoCore/NetworkThroughput.swift` | `GetifaddrsThroughputReader`; smoothing, units and release fraction | SystemObservations; RuleEvaluation | verbatim reader, adapted state machine |
-| `KeepressoCore/PowerSource.swift` | `PowerSourceSnapshot` and reader | RuleModel (snapshot); SystemObservations (reader) | adapted |
-| `KeepressoCore/ProcessList.swift`, `SharedPSSnapshot.swift` | Process listing and parsing | SystemObservations | adapted |
-| `KeepressoCore/Preset.swift` (~L60-68) | SSH preset comments on the `sshd:` versus `sshd-session` process names | SystemObservations (SSH reader reference only) | reference |
-| `KeepressoCore/Thermal.swift`, `BatteryLowPower.swift` | Thermal state and battery readings | SystemObservations (only if O8 adopts safety) | adapted |
-| `KeepressoCore/PowerAssertion.swift` | IOPMAssertion wrapper | PowerControl assertion mechanism | adapted |
-| `KeepressoCore/HelperEngine.swift` | Restore markers, `FileRestoreState`, the `disablesleep` apply/restore path, `HelperShutdownPolicy` | PowerControl journal and disablesleep mechanism; SleeplessRuntime idle exit | redesigned |
-| `KeepressoCore/HelperService.swift` | Code-signing requirement construction (~L144), XPC client patterns | ServiceSupport | redesigned |
-| `KeepressoCore/HelperRecovery.swift` | Recovery state primitives | ServiceSupport | adapted |
+| `PowerAssertion.swift` | IOPMAssertion wrapper | PowerControl assertion mechanism | adapted |
+| `HelperEngine.swift` | Restore markers, `FileRestoreState`, the `disablesleep` apply/restore path, `HelperShutdownPolicy` | PowerControl journal and disablesleep mechanism; SleeplessRuntime idle exit | redesigned |
+| `HelperService.swift` | Code-signing requirement construction (~L144), XPC client patterns | ServiceSupport | redesigned |
+| `HelperRecovery.swift` | Recovery state primitives | ServiceSupport | adapted |
+| `Preset.swift` (~L60-68) | Comments on the `sshd:` versus `sshd-session` process names | SSH reader (reference only) | reference |
 
-Tests to port from rev U, adapted to the new APIs:
-- `PowerSourceTriggerTests`, `ProcessTriggerTests`, `ProcessListerTests`;
-- `TimeWindowTriggerTests`, `CPULoadTriggerTests`, `NetworkThroughputTriggerTests`;
+Seeded tests to adapt:
 - `HelperShutdownPolicyTests`, `HelperRecoveryTests`;
 - the relevant cases from `HelperEngineTests`.
-
-The originals stay in place and keep running against Keepresso.
 
 ## Fork-only sources from the archive (port with fixes)
 
@@ -100,15 +113,16 @@ upstream.
 
 ## Stays Keepresso-only
 
-Everything in `KeepressoCore` not listed above stays where it is. That includes:
+Everything in `KeepressoCore` not listed above stays where it is and is not
+edited. That includes:
 - `SessionController` and session modes;
 - all other triggers (calendar, Bluetooth, gaming, VPN, volume, captive
   network);
 - SMC and fans, AWDL, keyboard lock, wake schedules, closed-display handling,
   and agent and automation integration.
 
-## Ported at (fill in as work lands)
+## Done (fill in as work lands)
 
-| Destination unit | Source | Rev | Port type | Commit |
+| Unit | Source | Rev | Moved, seeded or ported | Commit |
 | --- | --- | --- | --- | --- |
 | | | | | |

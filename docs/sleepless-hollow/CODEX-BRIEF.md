@@ -20,11 +20,17 @@ availability, pure evaluation, separate SH service identity, a removal
 transaction, and evidence-based acceptance. These parts are different:
 
 1. **Scope.** Only the modules SH needs are built now. `KeepressoContracts`,
-   `KeepressoRuntime`, `ProductAdapters` and Keepresso's adoption layer are
-   deferred to Stages E and G.
-2. **Build alongside instead of moving files.** Keepresso stays byte-identical
-   to upstream through Stage D (invariant I1). The shared code is seeded from
-   Keepresso's code with recorded provenance (I3, I4).
+   `KeepressoRuntime` and `ProductAdapters` are deferred to Stages E and G.
+2. **Two tracks (decision P7).**
+   - **Rules and observations move out of `KeepressoCore` one condition at a
+     time.** Each Keepresso trigger becomes a wrapper with its own two-state
+     adapter. Keepresso's existing tests must pass unchanged after every move,
+     and the UI is never edited.
+   - **The privileged helper code is not moved.** SH's PowerControl and
+     ServiceSupport are built fresh, seeded from it with recorded provenance.
+     Keepresso's helper adopts them only in Stage E.
+   - An earlier version of this plan built everything alongside Keepresso. It
+     was revised the same day, and DECISIONS.md P3 and P7 record the change.
 3. **PowerControl is narrowed to keep-awake holds.** AWDL and KeyboardLock stay
    in Keepresso.
 4. **No SharedSupport module** for now (T6).
@@ -41,8 +47,12 @@ transaction, and evidence-based acceptance. These parts are different:
    `upstream/main` and at the archive tag: file names, line hints, semantics
    described as Keepresso's, and the defects F1 to F6.
 2. Write `docs/sleepless-hollow/CODEX-REVIEW.md` containing:
-   - for each technical decision T1 to T10: agree, or disagree with your reason
-     and an alternative;
+   - for each technical decision T1 to T10 and for P7's two-track split: agree,
+     or disagree with your reason and an alternative;
+   - whether the Stage A order and the per-condition adapter approach are
+     workable, and anything in `KeepressoCore` that makes a clean wrapper hard
+     (for example, cross-file private access, or triggers that read state in
+     `tick`);
    - factual errors in any doc, with file and line evidence;
    - missing items: sources, tests, defects, risks or stages;
    - proposed changes to stage order or exit criteria;
@@ -50,8 +60,11 @@ transaction, and evidence-based acceptance. These parts are different:
 3. Do not change the other docs or write code yet. jbrest settles the review,
    then the docs are updated (by you or Claude Code, as jbrest chooses), and
    Stage 0 closes.
-4. After Stage 0 closes, you implement Stages A to D. Keep NOTES.md and the
-   "Ported at" table in SOURCE-INVENTORY.md current as you go.
+4. After Stage 0 closes, you implement Stages A to D. Keep NOTES.md, the
+   "Done" table in SOURCE-INVENTORY.md and the O11 table in DECISIONS.md
+   current as you go.
+5. Stop at each review checkpoint listed in NOTES.md, and tell jbrest that a
+   Claude Code review is due before continuing.
 
 ## Working rules
 

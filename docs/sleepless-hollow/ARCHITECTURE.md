@@ -1,20 +1,21 @@
 # Sleepless Hollow: target architecture
 
-Date: 2 November 2026. Status: proposed, pending Codex review. Scope: the
-modules Sleepless Hollow (SH) needs, built so Keepresso can adopt them later
-without UI changes. Keepresso's adoption layer is described at the end and is
-not built in Stages A to D.
+Date: 2 November 2026, revised the same day (decision P7). Status: proposed,
+pending Codex review. Scope: the modules Sleepless Hollow (SH) needs. Keepresso
+adopts the rule and observation modules as they are built (Stage A) through
+wrappers and a two-state adapter, with no UI changes. Keepresso's helper adopts
+PowerControl and ServiceSupport later (Stage E).
 
 ## Design principles
 
 1. **Shared modules never import Keepresso.** No shared module depends on
    `KeepressoCore`, the Keepresso app, or any SH module. SwiftPM target
    dependencies enforce this: an undeclared import fails to compile.
-2. **Keepresso's semantics stay reachable.** Where Keepresso already has a
-   behavior (power-source matching, process matching, schedule boundaries, CPU
-   and throughput smoothing and hysteresis), the shared version reproduces it
-   exactly by default. Stage E can then switch Keepresso over without changing
-   behavior. Any deliberate difference needs a DECISIONS.md entry.
+2. **Keepresso's behavior is preserved exactly.** Moved conditions keep
+   Keepresso's matching, schedule boundaries, smoothing, hysteresis, saved
+   formats and treatment of missing readings, checked by Keepresso's existing
+   tests running against the wrappers. Any deliberate difference needs a
+   DECISIONS.md entry approved by jbrest.
 3. **Values, not presentation.** Shared modules hold no localized labels, no
    SwiftUI or AppKit, no factories and no permission prompts. Products supply
    those.
@@ -89,8 +90,10 @@ Tests/Sleepless/<Module>Tests/
 SleeplessHollow.yml                       (XcodeGen spec for the SH app)
 ```
 
-`Package.swift` gains the new targets. It is the only upstream file that
-changes before Stage E. `project.yml` is not touched.
+`Package.swift` gains the new targets, and `KeepressoCore` depends on
+RuleModel, RuleEvaluation and SystemObservations. `project.yml` is not touched:
+its Xcode targets consume `KeepressoCore` as a package product, so the new
+modules arrive transitively.
 
 ## Module contents
 
@@ -225,18 +228,27 @@ schedules and sleep watchdogs stay in Keepresso.
   removal in progress.
 - Safety pause on thermal or battery thresholds, if O8 adopts it.
 
-## Later: Keepresso adoption (Stage E, not in current scope)
+## Keepresso adapter layer
 
-Designed now so that Stages A to D don't block it; built only after SH works
-and with the user's approval:
+### Built in Stage A, condition by condition
 
-- `KeepressoCore` re-exports the shared modules and keeps the old type names as
-  type aliases or thin wrappers. The 42 files that import `KeepressoCore` keep
-  compiling with no UI edits.
-- The two-state adapter maps `Verdict` to Keepresso's `Bool` per condition type,
-  reproducing Keepresso's current treatment of missing readings exactly (O11).
-- Keepresso's triggers become thin wrappers over the shared evaluators.
-  Equivalence tests run old and new side by side, then the duplicated code is
-  deleted.
-- Keepresso's helper may adopt PowerControl and ServiceSupport later still. Its
-  XPC protocol and service identity do not change in Stage E.
+- `KeepressoCore` re-exports the shared modules (`@_exported import`) and keeps
+  every public type name, as a type alias or a thin wrapper. The 42 files that
+  import `KeepressoCore` compile with no edits.
+- Keepresso's triggers (`PowerSourceTrigger`, `TimeWindowTrigger`,
+  `CPULoadTrigger`, `NetworkThroughputTrigger`, `ProcessTrigger`) keep their
+  `Trigger` conformance, labels, factories and permission behavior. Their
+  evaluation delegates to RuleEvaluation and their readings come from
+  SystemObservations.
+- Two-state adapter: one small function per condition type, mapping `Verdict`
+  to `Bool`. It reproduces exactly how that trigger treated a missing or unknown
+  reading before the move, so it is not one global rule. Each mapping is
+  recorded in DECISIONS.md (O11 table).
+- Saved formats (`RuleSet`, `TriggerRule`, `TimeWindowRule` Codable shapes and
+  raw values) stay owned by `KeepressoCore` and map to and from shared values.
+
+### Stage E (separate approval)
+
+Keepresso's helper switches its sleep-hold, restore journal, peer validation and
+recovery code onto PowerControl and ServiceSupport. Its XPC protocol and service
+identity do not change. The seeded duplicate code is then deleted.

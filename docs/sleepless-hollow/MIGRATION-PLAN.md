@@ -1,50 +1,72 @@
 # Sleepless Hollow: migration and staging plan
 
-Date: 2 November 2026. Status: proposed, pending Codex review. Current stage:
-0 (see [NOTES.md](../../NOTES.md)).
+Date: 2 November 2026, revised the same day (decision P7). Status: proposed,
+pending Codex review. Current stage: 0 (see [NOTES.md](../../NOTES.md)).
 
-## Strategy: build alongside, adopt later
+## Strategy
 
-The shared modules are new targets built next to Keepresso, seeded from
-Keepresso's code. Keepresso is not modified while SH is built. Only after SH
-works (Stage D) does Stage E switch Keepresso onto the shared modules through
-an adapter layer, then delete the duplicated code.
+There are two tracks, chosen by how risky and how actively changed the code is.
 
-Why:
-- Every commit builds and Keepresso keeps working, so each step can be
-  reviewed on its own.
-- The shared modules can be designed properly rather than shaped by file moves.
-- Rebasing on upstream stays cheap, because Keepresso's files don't conflict.
-- If Stage E never happens, SH is unaffected.
+**Rules and observations: move and adapt now.** These files have had no upstream
+commits in the last 60 days. The process listing files are the only exception,
+with one each. Each condition type moves out of `KeepressoCore` into the shared
+modules. In the same step:
+- Keepresso's existing type becomes a thin wrapper over the shared code.
+- That condition's three-state to two-state adapter is written.
 
-Cost: until Stage E, some logic exists twice. The provenance check (I4) is how
-upstream changes to the copied logic get noticed.
+Keepresso's existing tests must pass unchanged before the next condition moves.
+The result:
+- no duplicated logic;
+- Keepresso's ~1,200 tests guard the shared code from the start;
+- every shared boundary has two real consumers while it is being designed.
 
-## Invariants (Stages 0 to D)
+**Privileged helper: build fresh for SH; adopt in Keepresso later.**
+Keepresso's helper files changed 18 times upstream in 60 days
+(`HelperEngine` 6, `HelperService` 8, `HelperRecovery` 4). They run as root, and
+verifying a change to them needs an installed Keepresso test. PowerControl and
+ServiceSupport are therefore built for SH, seeded from Keepresso's code with
+recorded provenance. Keepresso's helper keeps its own code until Stage E.
 
-- **I1. Keepresso untouched.** This command must print nothing:
+The UI never changes. `KeepressoCore` re-exports the shared modules and keeps
+every public type name. The 42 files that import it compile with no edits.
+Xcode targets consume `KeepressoCore` as a package product, so new package
+targets arrive transitively and `project.yml` does not change.
+
+## Invariants
+
+- **I1. UI, helper and session code untouched.** Through Stage D, this command
+  must print nothing:
 
   ```sh
-  git diff upstream/main --stat -- Sources/Keepresso Sources/KeepressoCore \
-    Sources/KeepressoWidget Sources/keepresso-cli Sources/keepresso-helper \
-    Sources/keepresso-mcp Tests/KeepressoCoreTests project.yml
+  git diff upstream/main --stat -- Sources/Keepresso Sources/KeepressoWidget \
+    Sources/keepresso-cli Sources/keepresso-helper Sources/keepresso-mcp \
+    project.yml
   ```
 
-  `Package.swift` may only gain new products and targets.
-- **I2. Always green.** Every commit passes `swift build` and `swift test` for
-  all targets.
-- **I3. Provenance.** Every ported unit is listed in SOURCE-INVENTORY.md with:
-  - its source file and revision (an upstream commit or the archive tag);
-  - whether it was ported verbatim, adapted or redesigned.
-
-  The ported file carries a one-line header comment naming its source.
-- **I4. Rebase and check.** Rebase on `upstream/main` at least at each stage
-  boundary. Then, for every Keepresso file listed as a source, run
-  `git diff <recorded revision> upstream/main -- <file>`. Each change is either
-  ported or noted as not applicable, and the recorded revision is updated.
-- **I5. Nothing leaves the machine without approval.** Pushing to `origin` (a
-  public fork) and any contact with upstream both need jbrest's explicit
-  approval each time.
+  - In `Sources/KeepressoCore`, only the files listed as "moved" in
+    SOURCE-INVENTORY.md may change, plus any new wrapper files.
+  - `Tests/KeepressoCoreTests` may only change by moving a test to the shared
+    module's tests, with an equivalent test left against the wrapper. Deleting
+    an existing test is not allowed.
+  - `Package.swift` may gain targets and add dependencies to `KeepressoCore`.
+- **I2. Always green.** Every commit passes `swift build` and the full
+  `swift test`. The Keepresso pass count never drops below the Stage 0 baseline.
+- **I3. Behavior preserved.** A moved condition behaves exactly as before
+  through its wrapper, including missing readings, empty rule sets, saved
+  formats and raw values. Any deliberate difference needs a DECISIONS.md entry
+  approved by jbrest.
+- **I4. Provenance for seeded code.** Code in PowerControl and ServiceSupport
+  seeded from Keepresso's helper, and code ported from the archive, is listed in
+  SOURCE-INVENTORY.md with its source, revision and port type. The ported file
+  has a one-line header comment naming its source.
+- **I5. Rebase and check.** Rebase on `upstream/main` at least at each stage
+  boundary. Resolve conflicts in moved files by applying gyorgysh's change to the
+  shared code. For seeded helper code, run
+  `git diff <recorded revision> upstream/main -- <file>` and port or note each
+  change.
+- **I6. Nothing leaves the machine without approval.** Pushing to `origin` (a
+  public fork) and any contact with upstream each need jbrest's explicit
+  approval.
 
 ## Stages
 
@@ -58,36 +80,52 @@ Done:
 Remaining:
 1. Codex reviews the docs per CODEX-BRIEF.md. jbrest settles disagreements, and
    the docs are updated.
-2. Capture the upstream baseline on `sh/foundation`: `swift build`, `swift test`
-   pass count, toolchain, SDK and macOS version. Record it in NOTES.md. Ask
-   before starting the test run if it is long.
+2. Capture the upstream baseline: `swift build`, the `swift test` pass count,
+   toolchain, SDK and macOS. Record it in NOTES.md, and ask before starting the
+   test run if it is long.
 
 Exit: the review is settled, the baseline is recorded and the docs are committed.
 
-### Stage A: shared foundations
+### Stage A: move and adapt the rules and observations
 
-Ordered by dependency. Each item is its own commit or small series.
+One condition type per commit or small series, in this order (simplest first,
+which sets the pattern):
 
-- **A1. RuleModel and RuleEvaluation.**
-  - Port the condition semantics from Keepresso's triggers. Port Keepresso's
-    relevant tests for power source, process matching, time windows, and CPU
-    and throughput smoothing, and make them pass against the new code.
-  - Add three-state tests: unavailable samples, and Kleene combine for any and
-    all with mixed unknowns.
-  - Exit: both targets build with Foundation only; the tests pass.
-- **A2. SystemObservations.**
-  - Readers behind protocols, with fakes for tests.
-  - SSH classifier with fixtures for authenticated sessions, pre-auth
-    connections and a listener only.
-  - A console-session reader prototype, with its validation results written up.
-  - Exit: the tests pass; a read-only smoke run of each real reader on a Mac is
-    recorded; the console-session method is documented (O5).
-- **A3. ServiceSupport.**
-  - Port peer validation, admin authorization and the probe fixture from the
-    archive, with their tests.
-  - Add the handshake, structured error and diagnostics log types.
-  - Exit: the tests pass, including the ad-hoc cdhash pin and team requirement
-    cases.
+1. Scaffolding:
+   - empty `RuleModel`, `RuleEvaluation` and `SystemObservations` targets;
+   - `KeepressoCore` depends on them and re-exports them;
+   - `Observation`, `Verdict` and the three-state combine, with tests.
+2. Power source:
+   - snapshot to RuleModel and reader to SystemObservations;
+   - matching to RuleEvaluation;
+   - `PowerSourceTrigger` becomes a wrapper with its two-state adapter.
+3. Time window: `TimeWindowRule` fields and the evaluator move; the trigger
+   becomes a wrapper.
+4. CPU load: reader to SystemObservations, state machine to RuleEvaluation, and
+   the trigger becomes a wrapper.
+5. Network throughput: same pattern as CPU load.
+6. Process matching and process listing (`ProcessList`, `SharedPSSnapshot`).
+7. New SH-only conditions:
+   - SSH session reader that counts authenticated sessions only (F4), with
+     fixtures for authenticated sessions, pre-auth connections and a listener
+     only;
+   - console session reader prototype, with validation results written up (O5).
+8. Thermal and battery readers, if O8 adopts safety.
+
+For every move:
+- Write down how the old trigger treated a missing reading. Record it as that
+  condition's row in the O11 table in DECISIONS.md, and make the adapter
+  reproduce it.
+- Saved shapes such as `RuleSet` and `TriggerRule` Codable stay in
+  `KeepressoCore`, mapping to and from the shared values (T3).
+- Labels, localization, factories and the `Trigger` protocol stay in
+  `KeepressoCore`.
+
+Exit:
+- All Keepresso tests pass at or above the baseline count.
+- The shared modules build with only their declared dependencies.
+- The three-state tests pass.
+- A read-only smoke run of each real reader on a Mac is recorded.
 
 ### Stage B: power mechanism and PowerControl
 
@@ -96,24 +134,29 @@ Ordered by dependency. Each item is its own commit or small series.
   - lid open with idle sleep due;
   - no console login after a reboot with FileVault unlocked;
   - lid closed with and without external power;
-  - helper crash.
+  - helper crash;
+  - Keepresso's helper holding or restoring the same setting at the same time.
   
   Record the results and settle O1.
-- **B2. PowerControl.** Implement the chosen mechanisms, owner union, the
-  restore journal and verification.
-  - Exit: fake-backend tests cover several owners, exact prior values, failed
-    operations, retained restore debt and launch reconciliation ordering.
+- **B2. PowerControl**, built for SH and seeded from Keepresso's helper code
+  with provenance (I4). It covers the chosen mechanisms, owner union, the
+  restore journal, verification and launch reconciliation ordering (F3).
+
+Exit: fake-backend tests for several owners, exact prior values, failed
+operations, retained restore debt and reconciliation ordering.
 
 ### Stage C: SH service
 
+- ServiceSupport, built for SH and seeded from Keepresso's helper code and the
+  archive with provenance: peer validation, admin authorization, handshake,
+  structured errors and diagnostics.
 - SleeplessContracts.
 - SleeplessRuntime: port from the archived Headless files with the fixes listed
   in SOURCE-INVENTORY.md.
-- `sleepless-helper` executable.
+- The `sleepless-helper` executable.
 
 Exit:
-- The archived Headless tests, adapted and ported, pass, plus tests for each
-  listed defect.
+- The ported archived tests pass, plus a regression test for each listed defect.
 - The helper builds.
 - An XPC contract test runs against an in-process listener.
 
@@ -133,24 +176,23 @@ Exit:
 
 Exit: every row of the installed matrix passes with retained evidence.
 
-### Stage E (later, separate approval): Keepresso adoption layer
+### Stage E (separate approval): Keepresso's helper adopts PowerControl and ServiceSupport
 
-Covered in the last section of ARCHITECTURE.md:
-- re-exports and type aliases;
-- the two-state adapter;
-- triggers as thin wrappers;
-- equivalence tests;
-- deletion of the duplicated code.
+Start this once upstream churn in the helper files has settled. Keepresso's XPC
+protocol and service identity do not change.
 
-Exit: Keepresso's full test suite passes at the Stage 0 baseline count or
-higher. The app-shell and widget sources have no diff, and all 15 localizations
-are unchanged.
+Exit:
+- All Keepresso tests pass.
+- An installed Keepresso test covers wake schedules, closed-display hold and
+  restore, fans and helper approval.
+- The seeded duplicate code is deleted.
 
-### Stage F (later, separate approval): upstream offer
+### Stage F (separate approval): upstream offer
 
-1. Offer any archived fixes that apply to upstream code as separate small PRs
-   first. Which ones apply is not yet checked.
-2. Then open one issue linking a branch containing Stages A and E only, rebased
+1. Offer any fixes that apply to upstream code as separate small PRs first. F4
+   (the SSH pre-auth match in the upstream preset) is the likely first one, if
+   A2 confirms it.
+2. Then open one issue linking a branch with Stage A (and E, if done), rebased
    on current `upstream/main`. It contains no SH code, no SH docs and no
    fork-only changes. Cover five points:
    - what moved;
@@ -163,15 +205,13 @@ are unchanged.
 
 ### Stage G (optional): Keepresso runtime breakup
 
-Offered only after upstream PR #31 ("Make manual and automatic session activity
-clearer", which reworks `SessionController`) is resolved, and only if gyorgysh
-wants it. It splits `SessionController` and the rest of Keepresso's runtime by
-responsibility. This is the stage that touches UI wiring.
+Split `SessionController` and the rest of Keepresso's runtime by responsibility,
+if gyorgysh wants it. This is the stage that touches UI wiring.
 
 ## Work allocation
 
 - Codex: most implementation in Stages A to D, under these docs.
-- Claude Code: reviews at stage boundaries.
+- Claude Code: reviews at the checkpoints listed in NOTES.md.
 - jbrest:
   - product decisions;
   - authentication prompts;
