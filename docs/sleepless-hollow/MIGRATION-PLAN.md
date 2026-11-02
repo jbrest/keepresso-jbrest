@@ -1,7 +1,7 @@
 # Sleepless Hollow: migration and staging plan
 
 Date: 2 November 2026, revised the same day (decision P7). Status: Stage A settlement
-accepted by jbrest after Codex and Claude Code review. Current stage: 0 (see [NOTES.md](../../NOTES.md)).
+accepted by jbrest after Codex and Claude Code review. Current stage: A (see [NOTES.md](../../NOTES.md)).
 
 ## Strategy
 

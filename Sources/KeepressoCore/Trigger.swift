@@ -220,9 +220,7 @@ public final class ProcessTrigger: Trigger {
     /// Pure decision function, exposed for direct unit testing. An empty query
     /// never matches (so a half-typed rule doesn't pin the Mac awake).
     static func matches(_ query: String, in processes: [String]) -> Bool {
-        let needle = query.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !needle.isEmpty else { return false }
-        return processes.contains { $0.lowercased().contains(needle) }
+        ProcessQueryEvaluation.matches(query, in: processes)
     }
 }
 

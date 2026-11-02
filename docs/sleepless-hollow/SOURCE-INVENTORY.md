@@ -130,10 +130,9 @@ edited. That includes:
 | A1 scaffolding | New shared types/targets; Package.swift compatibility exports | sh/foundation | new; no upstream condition moved | 2026-11-02: Package.swift reviewed; no new candidate | a6f05dd; review fixes b50e79f |
 | A2 power | PowerSource.swift; Trigger.swift power wrapper (entire files reviewed) | U 7ea73a6 | snapshot moved to RuleModel by re-export only; IOKit acquisition adapted to SystemObservations; matching adapted to RuleEvaluation; Keepresso compatibility wrappers retained | 2026-11-02: no new upstream bug candidate; model/reader/evaluator provenance comments cite U | See A2 commit |
 | A3 time window | TimeWindow.swift | U 7ea73a6 | condition value/evaluator adapted; product Codable/labels and trigger retained | 2026-11-02: whole file reviewed; none | See A3 commit |
-
 | A4 CPU/cache | CPULoad.swift; TTLCache.swift | U 7ea73a6 | counter reader/cache moved; smoothing evaluator adapted; Core reader and step seams retained | 2026-11-02: both whole files reviewed; suspected U2 in NOTES.md | See A4 commit |
-
 | A5 throughput | NetworkThroughput.swift | U 7ea73a6 | acquisition and smoothing moved; labels, trigger, nested state and injected reader seam retained | 2026-11-02: whole file reviewed; no new candidate; unsigned byte subtraction guarded | See A5 commit |
+| A6 processes | ProcessList.swift; SharedPSSnapshot.swift; Trigger.swift process predicate | U 7ea73a6 | sync acquisition, asynchronous observation and rich shared source moved/adapted; query evaluator extracted; Core keeps ProcessListing and retained-success adapter | 2026-11-02: both process files and process trigger reviewed; no new candidate | See A6 commit |
 
 ## Compatibility state per moved condition
 
@@ -145,9 +144,9 @@ move; it is the scope for any later, separately agreed behavior improvement.
 | Condition | Compatibility-only or mixed state | Upstream source | Later change that could remove it |
 | --- | --- | --- | --- |
 | Power source (A2) | No retained mutable compatibility state. Legacy fallback snapshot and unknown-to-Bool policy stay in Keepresso wrappers; immutable reader ownership is operational. | U PowerSource.swift:57-59; Trigger.swift:88-94 | A future explicit-unavailability interface could remove the fallback/coercion, not the acquisition backend. |
-
-| CPU load (A4) | No compatibility-only state: smoothing, hysteresis, counter history and cache are operational. Core failed-read reevaluation is compatibility behavior, documented at its branch. | U CPULoad.swift:124-153; S4 comment on Core state | A separately agreed missing-data policy could remove retained-average fallback, while retaining smoothing for valid samples. |
+| CPU load (A4) | No compatibility-only state: smoothing, hysteresis, counter history and cache are operational. Core failed-read reevaluation is compatibility behavior, documented at its branch. | U CPULoad.swift:124-153; compatibility comment at Core fallback branch | A separately agreed missing-data policy could remove retained-average fallback, while retaining smoothing for valid samples. |
 | Network throughput (A5) | No compatibility-only state: average, hysteresis, byte history and cache are operational. Core reevaluates retained average with current settings after failed reads. | U NetworkThroughput.swift:147-174 | A separately agreed unavailable-data policy could remove the fallback behavior. |
+| Processes (A6) | Compatibility-only Core retained successful commands. Shared asynchronous cache, lock, TTL and refresh latch remain operational. Shared failure is unavailable; Core can retain commands indefinitely. | U ProcessList.swift:64-78; Trigger.swift:219-229 | Explicit unknown/stale handling in Keepresso could remove Core retention without removing the shared observation cache. |
 | Time window (A3) | No retained compatibility state. | U TimeWindow.swift:77-97 | None needed. |
 
 TTLCache now has one definition in SystemObservations, re-exported through
@@ -168,3 +167,23 @@ all original Core tests are unchanged. No duplicate alias is introduced.
   charging. Keepresso's whole-read failure fallback remains unchanged.
 - New compatibility cases live outside Tests/KeepressoCoreTests. All original
   tests and identities remain unchanged. No unrelated Trigger.swift logic moved.
+
+### A6 acquisition and compatibility boundaries
+
+- PSCommandReader owns command-only `ps` acquisition and newline parsing.
+  AsyncPSCommandObserver owns the nonblocking TTL/single-flight observation
+  cache. Both implement ProcessCommandsObserving. Neither retains a previous
+  successful listing after a failed refresh.
+- PSProcessLister retains successful commands solely for Keepresso's missing-data
+  policy. Its internal observer initializer lets tests verify this policy without
+  scheduler timing. The original public initializer and ProcessListing API stay.
+- SharedPSSnapshot has one definition, re-exported under its original name.
+  Its raw/command APIs keep the original cache and immediate retry-on-failure
+  behavior. Added typed observe exposes availability without changing those APIs.
+  Agent monitoring and TriggerFactory are unchanged and still share this source.
+- Existing acquisition is all-users substring matching. This step introduces
+  no user-scope filtering, authenticated SSH classification or product wire
+  format. The architecture's scoped SH condition remains later product work.
+- Thread isolation/Sendable decisions for the SH host remain Stage C work, as
+  noted in the A2 review. Existing rich-source locking and Sendable annotation
+  are preserved; no new unchecked Sendable annotation was added to production.

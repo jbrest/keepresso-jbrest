@@ -31,87 +31,40 @@ public protocol ProcessListing: AnyObject {
 /// active). Instead, a stale cache is returned immediately and a refresh is
 /// kicked off on a detached task when it goes stale.
 public final class PSProcessLister: ProcessListing {
-    private let ttl: TimeInterval
-    private let now: () -> Date
-    /// Produces the raw `ps` output (`nil` on failure). Injectable so the
-    /// cache/refresh logic can be unit-tested without spawning processes.
-    private let fetch: @Sendable () -> String?
+    private let observer: ProcessCommandsObserving
     private let lock = NSLock()
-    private var cached: [String] = []
-    private var lastFetch: Date?
-    private var isRefreshing = false
+    // Compatibility-only snapshot retained across failed reads, independently
+    // of the shared observation cache (U ProcessList.swift:64-78; S2/S4).
+    private var retained: [String] = []
 
     public init(
         ttl: TimeInterval = 3,
         now: @escaping () -> Date = Date.init,
         fetch: @escaping @Sendable () -> String? = PSProcessLister.runPS
     ) {
-        self.ttl = ttl
-        self.now = now
-        self.fetch = fetch
+        observer = AsyncPSCommandObserver(ttl: ttl, now: now, fetch: fetch)
+    }
+
+    init(observer: ProcessCommandsObserving) {
+        self.observer = observer
     }
 
     public var current: [String] {
-        let (snapshot, shouldRefresh) = withLock { () -> ([String], Bool) in
-            let isStale = lastFetch.map { now().timeIntervalSince($0) >= ttl } ?? true
-            let shouldRefresh = isStale && !isRefreshing
-            if shouldRefresh { isRefreshing = true }
-            return (cached, shouldRefresh)
-        }
-
-        if shouldRefresh {
-            Task.detached { [weak self] in
-                guard let self else { return }
-                // A transient `ps` failure keeps the previous snapshot: an
-                // empty one would make a process trigger drop a keep-awake
-                // session mid-download or build. Agent monitoring does the
-                // same; match it here.
-                guard let raw = self.fetch() else {
-                    self.withLock {
-                        self.lastFetch = self.now()
-                        self.isRefreshing = false
-                    }
-                    return
-                }
-                let fetched = raw.split(whereSeparator: \.isNewline).map(String.init)
-                self.withLock {
-                    self.cached = fetched
-                    self.lastFetch = self.now()
-                    self.isRefreshing = false
-                }
-            }
-        }
-        return snapshot
-    }
-
-    /// Wraps ``lock`` in a synchronous call so the lock/unlock pair is never
-    /// invoked directly from an async context (`NSLock` is `noasync`).
-    private func withLock<T>(_ body: () -> T) -> T {
         lock.lock()
         defer { lock.unlock() }
-        return body()
+        if case .available(let commands, _) = observer.observe() {
+            retained = commands
+        }
+        // A transient `ps` failure keeps the previous snapshot: an
+        // empty one would make a process trigger drop a keep-awake
+        // session mid-download or build. Agent monitoring does the
+        // same; match it here.
+        return retained
     }
 
     /// The real fetch: spawn `ps` and return its raw output. The default for
     /// ``init(ttl:now:fetch:)``'s `fetch`.
     @Sendable public static func runPS() -> String? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/ps")
-        // -a all users, -x include processes without a controlling terminal,
-        // -ww no column-width truncation, -o command= full command line, no header.
-        process.arguments = ["-axww", "-o", "command="]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-        do {
-            try process.run()
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            process.waitUntilExit()
-            guard process.terminationStatus == 0 else { return nil }
-            let output = String(decoding: data, as: UTF8.self)
-            return output.isEmpty ? nil : output
-        } catch {
-            return nil
-        }
+        PSCommandReader.runPS()
     }
 }

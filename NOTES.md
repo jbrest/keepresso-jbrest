@@ -6,10 +6,18 @@ Update it after each milestone.
 
 ## Current stage
 
-Claude accepted A3/A4. A5 throughput extraction complete; A6 processes next.
-Stop after A6 for Claude Code review before A7.
+A5 and A6 complete. Stopped for Claude Code review after A6, before A7.
 
 ## Done
+
+- 2026-11-02: A6 process matching/acquisition complete. Shared readers report
+  unavailable on failure; Core retains successful commands for compatibility
+  and applies the current query. The retained snapshot has an S4 source comment.
+  Nonblocking cache/latch moved to the shared observer; rich ps source moved
+  once by re-export, with existing agent/factory clients unchanged.
+  All 1,177 baseline identities retained; 1,221 tests pass. Package and unsigned
+  consumer builds pass; import/I1 checks pass; original tests unchanged.
+  Evidence: docs/sleepless-hollow/evidence/A6.md. Review due before A7.
 
 - 2026-11-02: A5 throughput extraction complete. Applied A3/A4 review comments:
   CPU compatibility comment now describes behavior at the fallback branch;
@@ -78,8 +86,9 @@ Stop after A6 for Claude Code review before A7.
 
 ## Next
 
-1. A6 process acquisition/matching and compatibility adapter.
-2. Stop for Claude Code review after A6, before A7.
+1. Claude Code review of A5/A6, especially retained process state, lock/lifecycle
+   behavior, typed failures and shared process/agent acquisition.
+2. Address findings before A7 authenticated SSH and console-session prototype.
 
 ## Review checkpoints (Claude Code)
 

@@ -1,4 +1,6 @@
+// Moved/adapted from KeepressoCore/SharedPSSnapshot.swift, upstream 7ea73a6.
 import Foundation
+import RuleModel
 
 /// One shared `/bin/ps` snapshot used by both ``PSProcessLister`` and
 /// ``PSAgentActivityMonitor``, so a machine with process rules and agent rules
@@ -30,15 +32,26 @@ public final class SharedPSSnapshot: @unchecked Sendable {
     /// ``PSProcessLister`` / ``PSAgentActivityMonitor`` without a concurrency
     /// warning (the class itself is already `@unchecked Sendable`).
     @Sendable public func fetchRaw() -> String? {
+        switch observe() {
+        case .available(let raw, _): return raw
+        case .unavailable: return nil
+        }
+    }
+
+    /// Typed acquisition result. Failed fetches remain unavailable and retain
+    /// the original retry behavior; there is no stale successful-data fallback.
+    @Sendable public func observe() -> SignalObservation<String> {
         lock.lock()
         defer { lock.unlock() }
         if let cached, let lastFetch, now().timeIntervalSince(lastFetch) < ttl {
-            return cached
+            return .available(value: cached, observedAt: lastFetch)
         }
         let value = run()
         cached = value
-        lastFetch = now()
-        return value
+        let at = now()
+        lastFetch = at
+        guard let value else { return .unavailable(reason: .readFailed, attemptedAt: at) }
+        return .available(value: value, observedAt: at)
     }
 
     /// Command-only listing derived from the rich snapshot, matching what

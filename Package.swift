@@ -89,6 +89,11 @@ let package = Package(
             path: "Tests/Compatibility/ThroughputCompatibilityTests"
         ),
         .testTarget(
+            name: "ProcessCompatibilityTests",
+            dependencies: ["KeepressoCore"],
+            path: "Tests/Compatibility/ProcessCompatibilityTests"
+        ),
+        .testTarget(
             name: "KeepressoCoreTests",
             dependencies: ["KeepressoCore"],
             path: "Tests/KeepressoCoreTests"
