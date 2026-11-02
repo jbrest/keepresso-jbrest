@@ -1,0 +1,18 @@
+{
+  "captured_date": "2026-11-02",
+  "architecture": "arm64",
+  "core_tests_passed": 1169,
+  "xpc_tests_passed": 8,
+  "baseline_test_identities": 1177,
+  "build": "swift build passed",
+  "app_build": "Unsigned Keepresso Debug scheme passed, including widget, helper, CLI and MCP; not installed or launched",
+  "source_revision": "7ea73a6ba26aa9fdefbe8103daff773df629fb74",
+  "source_tree": "ffa0c446693e5f4016e098ce8a8586c9d5aef0de",
+  "package_blob": "a3188b091350154b1c104f8f683bbdbedcbc5a46",
+  "project_blob": "aee670ba073a000d0f26aeba2703693b5128d792",
+  "swift": "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx26.0",
+  "xcode": "Xcode 26.6\nBuild version 17F113",
+  "sdk": "26.5",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5\nBuildVersion:\t\t25F71",
+  "xcodegen": "Version: 2.46.0"
+}

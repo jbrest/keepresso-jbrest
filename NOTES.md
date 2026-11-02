@@ -6,9 +6,12 @@ Update it after each milestone.
 
 ## Current stage
 
-Stage 0: review settled; documentation amendments applied. Baseline capture next.
+Stage 0 complete: review settled, amendments committed and upstream baseline captured. A1 scaffolding next.
 
 ## Done
+
+- 2026-11-02: Captured upstream baseline and test identities; package tests and
+  unsigned app/widget/helper/tool consumer build passed. Stage 0 is closed.
 
 - 2026-11-02: Committed the uncommitted modular proposal drafts on
   `codex/headless-lifecycle` (`53d8240`). Tagged them as
@@ -25,9 +28,8 @@ Stage 0: review settled; documentation amendments applied. Baseline capture next
 
 ## Next
 
-1. Capture the upstream baseline, toolchain/SDK/macOS and baseline test identities.
-2. Stage A1 scaffolding and baseline-identity checks.
-3. Stop for Claude Code review before A2; do not move power-source code yet.
+1. Stage A1 scaffolding and baseline-identity checks.
+2. Stop for Claude Code review before A2; do not move power-source code yet.
 
 ## Review checkpoints (Claude Code)
 
@@ -59,7 +61,23 @@ fixed on `sh/foundation`. Submission needs jbrest's approval.
 
 ## Baseline
 
-Not yet captured.
+Captured on 2 November 2026 from upstream source `7ea73a6`, with only planning
+changes on the foundation branch:
+
+- `swift build`: passed for all package products.
+- `swift test --skip HelperConnectionTests`: 1,169 tests passed.
+- `swift test --filter HelperConnectionTests`: 8 tests passed.
+- Total: 1,177 baseline identities, saved in
+  `docs/sleepless-hollow/baseline/tests-7ea73a6.txt`.
+- Swift 6.3.3, Xcode 26.6 (17F113), macOS SDK 26.5, macOS 26.5 (25F71), arm64.
+- XcodeGen generated the ignored project. Unsigned Debug Keepresso scheme built
+  with embedded widget, helper, CLI and MCP. Nothing installed or launched.
+- Environment and source hashes:
+  `docs/sleepless-hollow/baseline/environment-7ea73a6.json`.
+- Full run logs: `/tmp/sh-baseline-{build,core-tests,xpc-tests,app-build}.log`.
+  Temporary logs are not retained release evidence; the identity list and summary
+  are committed. I1 protected source/project diff is empty.
+
 
 ## Open questions
 
