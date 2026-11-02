@@ -358,6 +358,58 @@ upstream code review and U1 investigation matter more than compatibility here:
 - Stop at the end of Stage A for a Claude Code review. A8 is skipped unless O8
   is settled.
 
+## Claude Code review of A7 and the end of Stage A (2 November 2026)
+
+Accepted. Stopping short of interactive tests was the right call.
+
+**Where Stage A stands:**
+- The Keepresso side (A1 to A6) is complete: every baseline test passes and
+  every consumer builds.
+- A7 is prototypes only:
+  - SSH reports "unsupported" until a live backend is validated.
+  - Console accounting is unvalidated (O5).
+- U1 is corroborated by source but not yet confirmed live.
+
+**Notes for the O5 and SSH validation.** No change now; these are things the
+hands-on cases should settle:
+1. `OpenSSHSessionClassifier` makes the whole snapshot unavailable if any one
+   title is unrecognized. That is safe but brittle: one unfamiliar process (for
+   example, a future OpenSSH title format) makes the SSH condition unknown for
+   every connection. Decide after the live captures whether to skip
+   unrecognized processes instead, or keep failing closed.
+2. `ConsoleSessionReader.isInteractiveAccount` treats UID 501 and above as a
+   person. Check it against a directory or network account and against any
+   account below 501 the user actually logs in with.
+3. `readAccounting` treats a non-zero `errno` at the end of iteration as a
+   failure. The smoke run was fine. Keep an eye out for spurious "unavailable"
+   results in the captures.
+
+**Next task: one combined hands-on session plan.** Write it, do not run it, then
+stop for the pre-B1 Claude Code review. jbrest has to be present for A7's
+interactive cases, the U1 check and the B1 power experiment, so plan them as one
+or two sittings rather than separate requests. The plan covers:
+
+- **U1 first,** as a short standalone check: hold an unauthenticated TCP
+  connection to port 22 from another device, and capture whether the upstream
+  preset's process match fires. This decides whether U1 becomes a confirmed
+  upstream fix candidate.
+- **The A7 interactive cases** from A7-SESSION-VALIDATION.md.
+- **The B1 experiment design** (MIGRATION-PLAN.md Stage B), including:
+  - the temporary test identity;
+  - exactly what gets installed;
+  - cleanup and recovery steps;
+  - how to confirm the existing Keepresso service is untouched;
+  - the two-helper case.
+- **What jbrest needs in advance:**
+  - a second device that can SSH in;
+  - whether Remote Login is on, and who turns it on;
+  - a disposable second user account;
+  - how long each sitting takes;
+  - which steps need a separate session or machine because they reboot or log
+    out.
+- **Order:** read-only and low-risk steps first. The reboot and no-login steps
+  come last.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
