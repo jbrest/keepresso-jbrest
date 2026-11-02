@@ -302,14 +302,18 @@ CPU pattern. Small items to fold into A5:
 2. **Carry gyorgysh's comments into moved code too.** `MachCPUUsageReader`
    lost his explanation of why the cache is lazy and holds `self` unowned, and
    the line describing the Mach tick counters. Restore them in the shared file.
-3. **U2 analysis.** With continuous polling, U2 cannot trigger: `total` is
-   `busy` plus `idle`, so a wrap that lowers `busy` lowers `total` too, and the
-   existing guard returns nil. It becomes reachable only if one reader instance
-   goes unpolled long enough for the 32-bit tick lanes to wrap (weeks at
-   typical tick rates). Then the lanes are effectively arbitrary, and the
-   unsigned subtraction can trap and crash the app. Add this to the U2 entry.
-   Keep it "suspected" and low severity until a test shows it. The same check
-   applies to the network counters in A5.
+3. **U2 analysis (corrected after Codex's reply).** Keep U2 suspected, and
+   record the arithmetic risk separately from its real-world likelihood, as
+   Codex proposed. The arithmetic risk is real: a lower `busy` with a higher
+   `total` needs only enough idle growth to offset the drop. Likelihood:
+   - A single 32-bit lane wrap lowers `busy` by about 4.3 billion ticks.
+     Offsetting that needs equal idle growth within one sample interval, which
+     takes weeks at typical tick rates, so continuous polling should not hit it.
+   - Unverified: whether `busy` can fall without a wrap, for example if the
+     aggregate counters change when processors go offline or sleep.
+   - Long gaps between samples on one reader instance remain a plausible path.
+   
+   The same check applies to the network counters in A5.
 4. **New checkpoint after A6.** Processes bring the first real
    compatibility-only state (the retained snapshot after a failed listing) and
    acquisition shared with agent monitoring. Stop after A6 for a Claude Code
