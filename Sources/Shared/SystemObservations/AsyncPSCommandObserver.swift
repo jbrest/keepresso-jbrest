@@ -5,6 +5,8 @@ import RuleModel
 /// Nonblocking command observation with one background refresh at a time.
 /// Unlike the Keepresso adapter, a failed refresh publishes unavailable rather
 /// than retaining the last successful commands. The host chooses that policy.
+/// Keepresso retention equivalence requires one exclusive consumer: another
+/// consumer could start a refresh that replaces an unread successful result.
 public final class AsyncPSCommandObserver: ProcessCommandsObserving {
     private let ttl: TimeInterval
     private let now: () -> Date

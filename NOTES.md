@@ -6,9 +6,24 @@ Update it after each milestone.
 
 ## Current stage
 
-A5 and A6 complete. Stopped for Claude Code review after A6, before A7.
+Stage A implementation checkpoint: A2-A6 extractions and A7 session prototypes
+complete. Stopped for end-of-Stage-A Claude Code review. Live SSH remains
+unsupported; O5 session lifecycle validation is pending. A8 skipped (O8 open).
 
 ## Done
+
+- 2026-11-02: Applied Claude's A5/A6 review: documented the exclusive-consumer
+  invariant on both Core retention ownership and shared observer; recorded
+  32-bit throughput counters as improvement K2, with no behavior change.
+- A7: new session snapshots, pure three-state evaluators, SSH fixture classifier
+  and console utmpx prototype. Default SSH reader reports unsupported, not false;
+  there is no validated live evidence backend. Console read-only smoke sees one
+  qualifying user; switching/locking/virtual sessions remain unvalidated (O5).
+  No session transitions performed. Public console-owner API is insufficient
+  for the full requirement; see evidence/A7.md and A7-SESSION-VALIDATION.md.
+- A7 validation: 1,225 main tests plus 8 XPC tests pass (1,233 total). All 1,177
+  original identities retained, with 56 additions. Package/unsigned consumers
+  build; import/I1 checks pass; original tests unchanged. Twelve new A7 tests.
 
 - 2026-11-02: A6 process matching/acquisition complete. Shared readers report
   unavailable on failure; Core retains successful commands for compatibility
@@ -86,9 +101,13 @@ A5 and A6 complete. Stopped for Claude Code review after A6, before A7.
 
 ## Next
 
-1. Claude Code review of A5/A6, especially retained process state, lock/lifecycle
-   behavior, typed failures and shared process/agent acquisition.
-2. Address findings before A7 authenticated SSH and console-session prototype.
+1. End-of-Stage-A Claude Code review. Check A7 limitations and sources before
+   treating session observations as production-ready.
+2. Agree O5 scope and review the interactive session validation handoff with
+   jbrest. Ask before any SSH login, second user, locking or logout; never change
+   the agent's session. No such transitions have been authorized or performed.
+3. A8 remains skipped unless O8 is settled. No Stage B/B1 work before its own
+   review and approval gates.
 
 ## Review checkpoints (Claude Code)
 
@@ -114,13 +133,14 @@ fixed on `sh/foundation`. Submission needs jbrest's approval.
 
 | ID | File:line (rev) | Problem and user effect | Severity | Status | Test / branch |
 | --- | --- | --- | --- | --- | --- |
-| U1 | `Sources/KeepressoCore/Preset.swift`:68 (`7ea73a6`) | The "Remote Session (SSH)" preset matches any process containing `sshd:` or `sshd-session`. That may include connections that have not logged in yet, so a scanner probing port 22 could keep the Mac awake while the login grace period runs. macOS launches sshd per connection, so the actual pre-auth process names need checking. | low (if real) | suspected | Check in Stage A step 7 |
+| U1 | `Sources/KeepressoCore/Preset.swift`:68 (`7ea73a6`) | The "Remote Session (SSH)" preset matches any process containing `sshd:` or `sshd-session`. That may include connections that have not logged in yet, so a scanner probing port 22 could keep the Mac awake while the login grace period runs. Apple OpenSSH source sets a session title to [accepted] before authentication and a monitor title to user [priv] during account lookup. This supports the concern, but no live pre-auth connection was created or captured. | low (if real) | suspected; source corroborated in A7 | See evidence/A7.md; real pre-auth validation pending; no upstream fix proposed |
 | U2 | `Sources/KeepressoCore/CPULoad.swift`:54-58 (`7ea73a6`) | Delta calculation guards increasing total ticks but subtracts unsigned busy ticks without checking their order. A decreasing busy count with increasing total could trap; idle increments can offset a busy decrease. Long gaps spanning counter wraps are a candidate scenario, but timing and macOS reachability are unproven. Preserved in extraction. | low (real-world reachability unproven) | suspected, source review only | Separate upstream-fix regression and counter-wrap/reset investigation before proposing a fix |
 
 ## Possible Keepresso improvements (not bugs)
 
 | ID | Existing behavior | Possible later improvement | Status |
 | --- | --- | --- | --- |
+| K2 | Network throughput uses 32-bit per-interface counters; wrapping discards an interval and smoothing masks the missing sample | Consider 64-bit if_data64 counters via sysctl. A 32-bit byte lane wraps in about 34 seconds at 1 Gbit/s, or 3.4 seconds at 10 Gbit/s; no change in this refactor | Future option |
 | K1 | Process and throughput conditions can use retained data indefinitely during repeated reading failures, without showing staleness | Show freshness and optionally bound stale-data retention, only if gyorgysh wants it | Future option; unchanged by refactoring |
 
 ## Baseline

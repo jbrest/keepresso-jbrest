@@ -1,7 +1,7 @@
 # Sleepless Hollow: migration and staging plan
 
 Date: 2 November 2026, revised the same day (decision P7). Status: Stage A settlement
-accepted by jbrest after Codex and Claude Code review. Current stage: A (see [NOTES.md](../../NOTES.md)).
+accepted by jbrest after Codex and Claude Code review. Current stage: end-of-A review checkpoint (see [NOTES.md](../../NOTES.md)).
 
 ## Strategy
 
@@ -183,6 +183,11 @@ which sets the pattern):
      fixtures for authenticated sessions, pre-auth connections and a listener
      only;
    - console session reader prototype, with validation results written up (O5).
+
+   A7 implementation status: fixture classifier and console accounting prototype
+   added; live SSH remains unsupported, and O5 lifecycle validation is pending.
+   See A7-SESSION-VALIDATION.md. No product wiring assumes support.
+
 8. **A8: thermal reading**, only if O8 adopts it. Battery level already comes
    from the power snapshot.
 

@@ -133,6 +133,7 @@ edited. That includes:
 | A4 CPU/cache | CPULoad.swift; TTLCache.swift | U 7ea73a6 | counter reader/cache moved; smoothing evaluator adapted; Core reader and step seams retained | 2026-11-02: both whole files reviewed; suspected U2 in NOTES.md | See A4 commit |
 | A5 throughput | NetworkThroughput.swift | U 7ea73a6 | acquisition and smoothing moved; labels, trigger, nested state and injected reader seam retained | 2026-11-02: whole file reviewed; no new candidate; unsigned byte subtraction guarded | See A5 commit |
 | A6 processes | ProcessList.swift; SharedPSSnapshot.swift; Trigger.swift process predicate | U 7ea73a6 | sync acquisition, asynchronous observation and rich shared source moved/adapted; query evaluator extracted; Core keeps ProcessListing and retained-success adapter | 2026-11-02: both process files and process trigger reviewed; no new candidate | See A6 commit |
+| A7 sessions | New SH-only session values/evaluators, SSH classifier and console accounting reader | New; Apple public API and OpenSSH source references in evidence/A7.md | prototype, no Keepresso session behavior replaced; SSH unsupported by default | 2026-11-02: Preset.swift SSH comments/predicates reviewed; U1 source corroborated, not live-confirmed | See A7 commit |
 
 ## Compatibility state per moved condition
 
@@ -187,3 +188,13 @@ all original Core tests are unchanged. No duplicate alias is introduced.
 - Thread isolation/Sendable decisions for the SH host remain Stage C work, as
   noted in the A2 review. Existing rich-source locking and Sendable annotation
   are preserved; no new unchecked Sendable annotation was added to production.
+
+### A7 prototype boundary
+
+SessionSnapshots and SessionEvaluation introduce no Codable or product policy.
+SSH evidence fixtures are synthetic and the default reader is unsupported.
+Console accounting is a prototype only; its lifetime/scope is not yet validated
+for fast switching or virtual GUI sessions. No Keepresso trigger consumes these
+readers. There is no compatibility-only session state. API/source references,
+read-only results and pending work are in evidence/A7.md. A8 is skipped while O8
+remains open.

@@ -46,7 +46,7 @@ date and who decided, then update the affected doc.
 | O2 | SH bundle identifiers, service name and signing team | D1 | `sh.gyorgy.*` must not be used. Team `DUBDVK9FC2` was used for archive testing; confirm it is jbrest's. |
 | O3 | Final product name ("Sleepless Hollow" is provisional) | Before D1 | |
 | O4 | Policy-change authentication: admin group only, or fresh authentication per change; interaction with autosave | C | Archive: admin group membership via `getgrouplist` |
-| O5 | Console-session condition: any qualifying console user or a selected account; fast user switching; virtual sessions | A7 | See PRODUCT.md |
+| O5 | Console-session condition: any qualifying console user or a selected account; fast user switching; virtual sessions | A7, remains open | utmpx prototype sees current console login. Current-owner API cannot cover all sessions. Interactive switching/locking/virtual validation pending; see A7-SESSION-VALIDATION.md |
 | O6 | Status-only menu-bar item in addition to the window | D1 | |
 | O7 | Disabling keeps the service installed (proposed) | D1 | |
 | O8 | Thermal and battery safety: whether, thresholds, and how it is reported | C | Keepresso has `ThermalGuard`; SH runs unattended |

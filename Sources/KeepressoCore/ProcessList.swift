@@ -31,6 +31,8 @@ public protocol ProcessListing: AnyObject {
 /// active). Instead, a stale cache is returned immediately and a refresh is
 /// kicked off on a detached task when it goes stale.
 public final class PSProcessLister: ProcessListing {
+    // This adapter exclusively consumes its observer. A second consumer could
+    // replace an unread successful result before retention captures it.
     private let observer: ProcessCommandsObserving
     private let lock = NSLock()
     // Compatibility-only snapshot retained across failed reads, independently

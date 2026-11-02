@@ -1,8 +1,8 @@
 # Sleepless Hollow planning docs
 
 Date: 2 November 2026. Branch: `sh/foundation`, created from `upstream/main`
-(`7ea73a6`). Owner: jbrest. Written with Claude Code; Codex review pending
-(see [CODEX-BRIEF.md](CODEX-BRIEF.md)).
+(`7ea73a6`). Owner: jbrest. Prepared with Claude Code and Codex. At the end-of-Stage-A review checkpoint
+(see [CODEX-BRIEF.md](CODEX-BRIEF.md) and [NOTES.md](../../NOTES.md)).
 
 Sleepless Hollow (SH) is a standalone macOS app plus root background service
 that keeps a Mac awake on conditions, including when no one is logged in. It is

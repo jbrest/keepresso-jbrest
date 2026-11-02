@@ -87,8 +87,14 @@ The first design must distinguish an interactive console user from loginwindow
 and system/setup accounts, and specify fast-user-switching behavior. Separate
 virtual screen-sharing sessions require explicit investigation rather than being
 silently equated with the console. The source of the original login does not need
-to be detected for the console-session condition. No implementation has been
-added yet, and the current SSH rule does not cover this requirement.
+to be detected for the console-session condition.
+
+A7 now has a read-only utmpx prototype and fixture coverage, without product
+wiring. One current console login was observed. Locking, switching, logout and
+virtual-session behavior remain unvalidated, and O5 is open. SSH defaults to
+unsupported pending a validated live backend. See
+[A7-SESSION-VALIDATION.md](A7-SESSION-VALIDATION.md) for the capture tool and
+interactive cases requiring jbrest's approval.
 
 ## Boundary evidence
 
