@@ -133,6 +133,8 @@ edited. That includes:
 
 | A4 CPU/cache | CPULoad.swift; TTLCache.swift | U 7ea73a6 | counter reader/cache moved; smoothing evaluator adapted; Core reader and step seams retained | 2026-11-02: both whole files reviewed; suspected U2 in NOTES.md | See A4 commit |
 
+| A5 throughput | NetworkThroughput.swift | U 7ea73a6 | acquisition and smoothing moved; labels, trigger, nested state and injected reader seam retained | 2026-11-02: whole file reviewed; no new candidate; unsigned byte subtraction guarded | See A5 commit |
+
 ## Compatibility state per moved condition
 
 Per settlement S4, record only compatibility-only or mixed state and the source
@@ -144,7 +146,8 @@ move; it is the scope for any later, separately agreed behavior improvement.
 | --- | --- | --- | --- |
 | Power source (A2) | No retained mutable compatibility state. Legacy fallback snapshot and unknown-to-Bool policy stay in Keepresso wrappers; immutable reader ownership is operational. | U PowerSource.swift:57-59; Trigger.swift:88-94 | A future explicit-unavailability interface could remove the fallback/coercion, not the acquisition backend. |
 
-| CPU load (A4) | Mixed: smoothing/hysteresis state is operational; Core reevaluates retained average against the current threshold after failed reads for compatibility. Counter history and TTL caching are operational. | U CPULoad.swift:124-153; S4 comment on Core state | A separately agreed missing-data policy could remove retained-average fallback, while retaining smoothing for valid samples. |
+| CPU load (A4) | No compatibility-only state: smoothing, hysteresis, counter history and cache are operational. Core failed-read reevaluation is compatibility behavior, documented at its branch. | U CPULoad.swift:124-153; S4 comment on Core state | A separately agreed missing-data policy could remove retained-average fallback, while retaining smoothing for valid samples. |
+| Network throughput (A5) | No compatibility-only state: average, hysteresis, byte history and cache are operational. Core reevaluates retained average with current settings after failed reads. | U NetworkThroughput.swift:147-174 | A separately agreed unavailable-data policy could remove the fallback behavior. |
 | Time window (A3) | No retained compatibility state. | U TimeWindow.swift:77-97 | None needed. |
 
 TTLCache now has one definition in SystemObservations, re-exported through

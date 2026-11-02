@@ -12,6 +12,9 @@ public final class MachCPUUsageReader: CPUUsageObserving {
     private var previous: CPUCounterSample?
     private let now: () -> Date
     private let read: () -> CPUCounterSample?
+    /// The probe reads `self` (the delta advances `previous`), so the cache is
+    /// built lazily on first read, once `self` is fully initialized, and holds
+    /// `self` unowned: the cache and this reader share a lifetime.
     private lazy var cache = TTLCache<SignalObservation<Double>>(ttl: ttl, now: now) { [unowned self] in
         self.readDelta()
     }
@@ -49,6 +52,7 @@ public final class MachCPUUsageReader: CPUUsageObserving {
         return .available(value: fraction, observedAt: time)
     }
 
+    /// The real sample: Mach's cumulative per-state CPU tick counters.
     private static func readCounters() -> CPUCounterSample? {
         var size = mach_msg_type_number_t(
             MemoryLayout<host_cpu_load_info_data_t>.stride / MemoryLayout<integer_t>.stride

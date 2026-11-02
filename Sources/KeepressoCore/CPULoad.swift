@@ -79,8 +79,6 @@ public final class CPULoadTrigger: Trigger {
     }
 
     private let reader: CPULoadReading
-    // Mixed state: smoothing/hysteresis is operational; failed-read reevaluation
-    // of its retained average preserves U CPULoad.swift:124-153 (S2/S4).
     private var state = SmoothingState()
 
     public init(thresholdPercent: Int, reader: CPULoadReading = HostCPULoadReader()) {
@@ -111,6 +109,8 @@ public final class CPULoadTrigger: Trigger {
         if let sample {
             next = CPUThresholdEvaluation.step(shared, sample: sample, thresholdPercent: thresholdPercent)
         } else {
+            // Compatibility behavior: reevaluate the retained average with the
+            // current threshold after failed reads (U CPULoad.swift:124-153).
             next = CPUThresholdEvaluation.reevaluate(shared, thresholdPercent: thresholdPercent)
         }
         var result = SmoothingState()

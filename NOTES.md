@@ -6,9 +6,18 @@ Update it after each milestone.
 
 ## Current stage
 
-A3 and A4 complete. Stopped at the Claude Code review checkpoint before A5.
+Claude accepted A3/A4. A5 throughput extraction complete; A6 processes next.
+Stop after A6 for Claude Code review before A7.
 
 ## Done
+
+- 2026-11-02: A5 throughput extraction complete. Applied A3/A4 review comments:
+  CPU compatibility comment now describes behavior at the fallback branch;
+  restored moved CPU reader comments. Corrected the inventory classification.
+  U2 remains suspected: a decreased busy count does not logically imply a
+  decreased total, since idle increments may offset it. Long sampling gaps
+  could matter; neither required gap nor macOS reachability is established.
+  Throughput guards byte subtraction. Evidence: docs/sleepless-hollow/evidence/A5.md.
 
 - 2026-11-02: A4 CPU/cache extraction complete. Original CPU reader injection
   and smoothing test seams remain. TTLCache has one shared definition, re-exported
@@ -69,9 +78,8 @@ A3 and A4 complete. Stopped at the Claude Code review checkpoint before A5.
 
 ## Next
 
-1. Claude Code review of A3/A4: CPU smoothing, cache ownership, retained test
-   seams and S4 state comments. See evidence/A3.md and evidence/A4.md in the plan.
-2. Address review findings before A5 throughput extraction.
+1. A6 process acquisition/matching and compatibility adapter.
+2. Stop for Claude Code review after A6, before A7.
 
 ## Review checkpoints (Claude Code)
 
@@ -98,7 +106,7 @@ fixed on `sh/foundation`. Submission needs jbrest's approval.
 | ID | File:line (rev) | Problem and user effect | Severity | Status | Test / branch |
 | --- | --- | --- | --- | --- | --- |
 | U1 | `Sources/KeepressoCore/Preset.swift`:68 (`7ea73a6`) | The "Remote Session (SSH)" preset matches any process containing `sshd:` or `sshd-session`. That may include connections that have not logged in yet, so a scanner probing port 22 could keep the Mac awake while the login grace period runs. macOS launches sshd per connection, so the actual pre-auth process names need checking. | low (if real) | suspected | Check in Stage A step 7 |
-| U2 | `Sources/KeepressoCore/CPULoad.swift`:54-58 (`7ea73a6`) | Delta calculation guards increasing total ticks but subtracts unsigned busy ticks without checking their order. A decreasing busy count with increasing total could trap; whether macOS produces this combination needs investigation. Preserved in extraction. | low (real-world reachability unproven) | suspected, source review only | Separate upstream-fix regression and counter-wrap/reset investigation before proposing a fix |
+| U2 | `Sources/KeepressoCore/CPULoad.swift`:54-58 (`7ea73a6`) | Delta calculation guards increasing total ticks but subtracts unsigned busy ticks without checking their order. A decreasing busy count with increasing total could trap; idle increments can offset a busy decrease. Long gaps spanning counter wraps are a candidate scenario, but timing and macOS reachability are unproven. Preserved in extraction. | low (real-world reachability unproven) | suspected, source review only | Separate upstream-fix regression and counter-wrap/reset investigation before proposing a fix |
 
 ## Possible Keepresso improvements (not bugs)
 
