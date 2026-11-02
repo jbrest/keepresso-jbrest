@@ -153,7 +153,8 @@ which sets the pattern):
 1. **A1: scaffolding:**
    - empty `RuleModel`, `RuleEvaluation` and `SystemObservations` targets;
    - `KeepressoCore` depends on them and re-exports them;
-   - `Observation`, `Verdict` and the three-state combine, with tests;
+   - the observation envelope (`SignalObservation`), `Verdict` and the
+     three-state combine, with tests;
    - a short plain-Python framework/product import check, with no rg dependency
      or forbidden-import build experiments (S3).
 2. **A2: power source:**

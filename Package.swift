@@ -9,6 +9,9 @@ let package = Package(
     ],
     products: [
         .library(name: "KeepressoCore", targets: ["KeepressoCore"]),
+        .library(name: "RuleModel", targets: ["RuleModel"]),
+        .library(name: "RuleEvaluation", targets: ["RuleEvaluation"]),
+        .library(name: "SystemObservations", targets: ["SystemObservations"]),
         // The caffeinate-style CLI. Built here for the dev loop; the release
         // app embeds the identically sourced `keepresso-cli` Xcode target.
         .executable(name: "keepresso", targets: ["keepresso-cli"]),
@@ -21,8 +24,20 @@ let package = Package(
         .executable(name: "keepresso-mcp", targets: ["keepresso-mcp"])
     ],
     targets: [
+        .target(name: "RuleModel", path: "Sources/Shared/RuleModel"),
+        .target(
+            name: "RuleEvaluation",
+            dependencies: ["RuleModel"],
+            path: "Sources/Shared/RuleEvaluation"
+        ),
+        .target(
+            name: "SystemObservations",
+            dependencies: ["RuleModel"],
+            path: "Sources/Shared/SystemObservations"
+        ),
         .target(
             name: "KeepressoCore",
+            dependencies: ["RuleModel", "RuleEvaluation", "SystemObservations"],
             path: "Sources/KeepressoCore"
         ),
         .executableTarget(
@@ -40,6 +55,16 @@ let package = Package(
             name: "keepresso-mcp",
             dependencies: ["KeepressoCore"],
             path: "Sources/keepresso-mcp"
+        ),
+        .testTarget(
+            name: "RuleModelTests",
+            dependencies: ["RuleModel"],
+            path: "Tests/Shared/RuleModelTests"
+        ),
+        .testTarget(
+            name: "RuleEvaluationTests",
+            dependencies: ["RuleEvaluation"],
+            path: "Tests/Shared/RuleEvaluationTests"
         ),
         .testTarget(
             name: "KeepressoCoreTests",

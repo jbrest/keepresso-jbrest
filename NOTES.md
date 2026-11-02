@@ -6,9 +6,21 @@ Update it after each milestone.
 
 ## Current stage
 
-Stage 0 complete: review settled, amendments committed and upstream baseline captured. A1 scaffolding next.
+Stage 0 and A1 complete. Stopped before A2 for the settled Claude Code review
+checkpoint. No power-source or other existing condition has moved.
 
 ## Done
+
+- 2026-11-02: A1 scaffolding complete. RuleModel, RuleEvaluation and
+  SystemObservations are actual SwiftPM targets/products; KeepressoCore depends
+  on and re-exports them. No existing runtime/condition source was moved.
+- A1 validation: all 1,177 baseline identities retained; 1,178 tests in the main
+  run plus 8 separately scheduled XPC tests passed (1,186 total, 9 new tests).
+  Package build and unsigned app/widget/helper/CLI/MCP consumer build passed.
+  The protected I1 source/project diff is empty; existing Core tests unchanged.
+- Import allowlist check passed. Baseline identity checker also rejects a
+  missing required identity; import parsing covers standard/exported/scoped
+  imports. No forbidden-import build experiments were performed.
 
 - 2026-11-02: Captured upstream baseline and test identities; package tests and
   unsigned app/widget/helper/tool consumer build passed. Stage 0 is closed.
@@ -28,8 +40,11 @@ Stage 0 complete: review settled, amendments committed and upstream baseline cap
 
 ## Next
 
-1. Stage A1 scaffolding and baseline-identity checks.
-2. Stop for Claude Code review before A2; do not move power-source code yet.
+1. Claude Code reviews A1: new target graph, compatibility exports,
+   SignalObservation/Verdict API, shared tests and the two check scripts.
+2. jbrest settles that checkpoint before A2 starts.
+3. A2 power source establishes the first real condition wrapper and O11 row;
+   stop for review again after A2. O11 remains unfilled until the move.
 
 ## Review checkpoints (Claude Code)
 
@@ -92,3 +107,23 @@ ones that block early stages:
 - Upstream PR #31 reworks `SessionController`. It doesn't touch the files Stage
   A moves, and jbrest has said it is not a concern.
 - Nothing on `sh/foundation` or the archive tag has been pushed to `origin`.
+
+## A1 implementation note
+
+The first scaffold build exposed a naming collision: exporting a generic
+`Observation` type shadows Apple's Observation module in existing @Observable
+macro expansions. The shared value is named `SignalObservation` instead, with
+no change to the planned observation semantics or existing Keepresso source.
+
+## A1 review evidence
+
+- Logs: `/tmp/sh-a1-build.log`, `/tmp/sh-a1-core-tests.log`,
+  `/tmp/sh-a1-xpc-tests.log`, `/tmp/sh-a1-app-build.log`.
+- Current identity list: `/tmp/sh-a1-test-identities.txt`; compare with committed
+  baseline using `python3 tools/check-baseline-tests.py BASELINE CURRENT`.
+- Framework/product guard: `python3 tools/check-shared-imports.py`.
+- SignalObservation and its reason values are not Codable; products own wire
+  formats. No CombineMode migration or live reader implementation is in A1.
+- No compatibility-only/mixed state introduced, so S4 classification comments
+  are not needed yet. No push, upstream contact, app launch or live service/
+  policy mutation occurred.

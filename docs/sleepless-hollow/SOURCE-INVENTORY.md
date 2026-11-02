@@ -127,7 +127,7 @@ edited. That includes:
 
 | Unit | Source | Rev | Moved, seeded or ported | Reviewed (I7): date, candidate IDs or "none" | Commit |
 | --- | --- | --- | --- | --- | --- |
-| | | | | | |
+| A1 scaffolding | New shared types/targets; Package.swift compatibility exports | sh/foundation | new; no upstream condition moved | 2026-11-02: Package.swift reviewed; no new candidate | See A1 commit |
 
 ## Compatibility state per moved condition
 

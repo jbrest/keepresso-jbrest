@@ -40,7 +40,7 @@ PowerControl and ServiceSupport later (Stage E).
 
 | Module | Kind | Purpose | Project dependencies | Frameworks |
 | --- | --- | --- | --- | --- |
-| RuleModel | Shared library | Condition values, sample values, `Observation`, `CombineMode` | None | Foundation |
+| RuleModel | Shared library | Condition values, sample values, `SignalObservation`, `CombineMode` | None | Foundation |
 | RuleEvaluation | Shared library | Pure evaluators, `Verdict`, smoothing state machines, three-state combine | RuleModel | Foundation |
 | SystemObservations | Shared library | Readers that acquire samples; no decisions | RuleModel | Foundation, IOKit, Darwin, SystemConfiguration |
 | PowerControl | Shared library | Keep-awake holds only: owners, mechanisms, restore journal, verification | None | Foundation, IOKit, Darwin |
@@ -111,8 +111,9 @@ modules arrive transitively.
 - `CPUThresholdCondition` and `ThroughputThresholdCondition` with Keepresso's
   units (percent; KiB/s threshold over bytes/s samples).
 - `CombineMode` (`any`, `all`).
-- `Observation<Value>`: either available (value, time) or unavailable (reason,
-  time).
+- `SignalObservation<Value>` (the observation envelope): either available
+  (value, time) or unavailable (reason, time). The name avoids shadowing Apple's
+  Observation framework in Keepresso's existing @Observable macros.
 - Sample values: power source snapshot (including unknown provider), process
   snapshot, session snapshot, CPU counters, interface counters, thermal state,
   battery level.
@@ -137,8 +138,8 @@ modules arrive transitively.
 
 ### SystemObservations
 
-Each reader sits behind a protocol and returns `Observation` values. Acquisition
-state such as previous counters, caches and refresh coordination stays with the
+Each reader sits behind a protocol and returns `SignalObservation` values.
+Acquisition state such as previous counters, caches and refresh coordination stays with the
 reader; threshold and grace decisions stay in evaluation. Readers:
 
 - Power source (IOKit power sources).
