@@ -455,7 +455,7 @@ rebuild these; review them and raise problems instead:
   with timers. Marks are logged on the laptop, never over SSH during a step,
   and copied to `~/sh-handson-captures/` at the end. There is no control
   channel: the recorder runs in a detached tmux server.
-- [HANDS-ON-RUNBOOK.md](HANDS-ON-RUNBOOK.md): what jbrest pastes and does.
+- [HANDS-ON-RUNBOOK.txt](HANDS-ON-RUNBOOK.txt): what jbrest pastes and does. Plain text on purpose, for TextEdit; keep it that way.
 
 Facts found while writing them:
 - The coreaudiod idle-sleep block is "Created for" `avconferenced`. It started
