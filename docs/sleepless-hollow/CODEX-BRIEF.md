@@ -283,6 +283,38 @@ Noted for Stage C, no action now: `PowerSourceObserving` and the reader are not
 `Sendable`. That's fine for Keepresso's main-actor use. The SH service loop
 should decide its isolation before relying on them across threads.
 
+## Claude Code review of A3 and A4 (2 November 2026)
+
+Both accepted. I compared each against upstream line by line: the time window,
+the counter delta (including when `previous` updates on failure), the TTL
+cache, smoothing, failed-read reevaluation, malformed thresholds and the
+constants all behave identically. Proceed to A5 (network throughput) with the
+CPU pattern. Small items to fold into A5:
+
+1. **S4 comment placement.** The comment on `CPULoadTrigger.state` calls it
+   "Mixed state". Under jbrest's rule, none of that state would become
+   unnecessary with an improved Keepresso: the average and the hysteresis flag
+   are fully operational. The compatibility-only part is a behavior, the
+   failed-read `reevaluate` branch in `step`. Move the comment to that branch
+   and phrase it as compatibility behavior, citing the source. Use the same
+   placement for network throughput. Reserve S4 state comments for state that
+   really would go away, such as the retained process snapshot in A6.
+2. **Carry gyorgysh's comments into moved code too.** `MachCPUUsageReader`
+   lost his explanation of why the cache is lazy and holds `self` unowned, and
+   the line describing the Mach tick counters. Restore them in the shared file.
+3. **U2 analysis.** With continuous polling, U2 cannot trigger: `total` is
+   `busy` plus `idle`, so a wrap that lowers `busy` lowers `total` too, and the
+   existing guard returns nil. It becomes reachable only if one reader instance
+   goes unpolled long enough for the 32-bit tick lanes to wrap (weeks at
+   typical tick rates). Then the lanes are effectively arbitrary, and the
+   unsigned subtraction can trap and crash the app. Add this to the U2 entry.
+   Keep it "suspected" and low severity until a test shows it. The same check
+   applies to the network counters in A5.
+4. **New checkpoint after A6.** Processes bring the first real
+   compatibility-only state (the retained snapshot after a failed listing) and
+   acquisition shared with agent monitoring. Stop after A6 for a Claude Code
+   review before A7. NOTES.md lists it.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
