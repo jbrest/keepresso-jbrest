@@ -1,12 +1,20 @@
 import Foundation
 import SystemObservations
 
-/// Existing Keepresso injection seam. Shared readers expose availability;
-/// this product adapter retains the original snapshot-only interface.
+/// Abstraction over the IOKit power-source API (`IOPowerSources`) so trigger
+/// logic can be unit-tested without real hardware state.
+///
+/// Mirrors the ``PowerAsserting`` seam: ``IOKitPowerSourceMonitor`` is the real
+/// backend; tests inject a fake that returns canned snapshots.
 public protocol PowerSourceMonitoring: AnyObject {
+    /// The power situation right now. Reading is cheap; callers may poll it.
     var current: PowerSourceSnapshot { get }
 }
 
+/// Real implementation backed by the shared IOKit power-source reader.
+///
+/// Not thread-safe by design, read it from the main actor alongside the
+/// owning controller, the same way ``IOKitPowerAssertionManager`` is used.
 public final class IOKitPowerSourceMonitor: PowerSourceMonitoring {
     private let reader: PowerSourceObserving
 

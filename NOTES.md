@@ -6,10 +6,16 @@ Update it after each milestone.
 
 ## Current stage
 
-A2 complete and stopped for Claude Code review. A1 review items 1-6 are applied;
-A3 time-window work has not started.
+A2 review accepted. A3 complete; A4 CPU/cache extraction next, followed by the
+new Claude Code checkpoint before A5.
 
 ## Done
+
+- 2026-11-02: A3 complete, including restoration of retained upstream power API
+  comments. Original TimeWindowRule Codable and presentation remain; shared
+  condition/evaluation delegates preserve current behavior. All 1,177 baseline
+  identities retained; 1,200 tests pass; package and unsigned consumer builds
+  pass. Import check and I1 diff pass. Evidence: evidence/A3.md.
 
 - 2026-11-02: A2 power-source extraction complete with original Keepresso names,
   injected monitor seam and Match Codable/raw values intact. Shared snapshot has
@@ -58,10 +64,8 @@ A3 time-window work has not started.
 
 ## Next
 
-1. Claude Code reviews the A2 power-source pattern, RuleVerdict rename and
-   naming rule, O11 behavior row, provenance and evidence/A2.md.
-2. jbrest settles that checkpoint before A3 begins. No further condition moves
-   until that review is complete.
+1. A4 CPU reader/evaluation and TTLCache move, preserving old test seams.
+2. Stop for Claude Code review after A4, before A5.
 
 ## Review checkpoints (Claude Code)
 

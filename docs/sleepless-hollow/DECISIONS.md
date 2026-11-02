@@ -64,7 +64,7 @@ before its move, and confirm the adapter reproduces it. Cite the source line.
 | Condition | Pre-move behavior on missing reading | Source | Adapter preserves |
 | --- | --- | --- | --- |
 | Power source (A2) | Missing IOKit blob produces unknown provider, false charging, false hasBattery, nil percentage. AC/battery compare provider; charging uses isCharging even if provider is unknown. No cached last sample. | U 7ea73a6 PowerSource.swift:57-59; Trigger.swift:88-94 | The same fallback snapshot and predicates, with shared unknown mapped to false for AC/battery; current match and reading are checked on every isSatisfied call. |
-| Time window | (no reading; always known) | | |
+| Time window (A3) | Injected calendar/date evaluated on each call; missing date components return false | U 7ea73a6 TimeWindow.swift:77-97 | Shared unknown maps to false; current fields, injected clock/calendar, equal endpoints and original Codable stay unchanged |
 | CPU load | | | |
 | Network throughput | | | |
 | Process | | | |

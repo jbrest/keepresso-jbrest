@@ -74,6 +74,11 @@ let package = Package(
             path: "Tests/Compatibility/PowerSourceCompatibilityTests"
         ),
         .testTarget(
+            name: "TimeWindowCompatibilityTests",
+            dependencies: ["KeepressoCore"],
+            path: "Tests/Compatibility/TimeWindowCompatibilityTests"
+        ),
+        .testTarget(
             name: "KeepressoCoreTests",
             dependencies: ["KeepressoCore"],
             path: "Tests/KeepressoCoreTests"

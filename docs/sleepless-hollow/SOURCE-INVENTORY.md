@@ -129,6 +129,8 @@ edited. That includes:
 | --- | --- | --- | --- | --- | --- |
 | A1 scaffolding | New shared types/targets; Package.swift compatibility exports | sh/foundation | new; no upstream condition moved | 2026-11-02: Package.swift reviewed; no new candidate | a6f05dd; review fixes b50e79f |
 | A2 power | PowerSource.swift; Trigger.swift power wrapper (entire files reviewed) | U 7ea73a6 | snapshot moved to RuleModel by re-export only; IOKit acquisition adapted to SystemObservations; matching adapted to RuleEvaluation; Keepresso compatibility wrappers retained | 2026-11-02: no new upstream bug candidate; model/reader/evaluator provenance comments cite U | See A2 commit |
+| A3 time window | TimeWindow.swift | U 7ea73a6 | condition value/evaluator adapted; product Codable/labels and trigger retained | 2026-11-02: whole file reviewed; none | See A3 commit |
+
 
 ## Compatibility state per moved condition
 

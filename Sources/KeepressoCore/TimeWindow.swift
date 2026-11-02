@@ -75,25 +75,9 @@ public final class TimeWindowTrigger: Trigger {
     /// A wrapped window's early-morning part belongs to the window that
     /// *started* the previous day, so "Fri 22:00-6:00" covers Saturday 3:00.
     static func evaluate(_ rule: TimeWindowRule, at date: Date, calendar: Calendar) -> Bool {
-        let components = calendar.dateComponents([.weekday, .hour, .minute], from: date)
-        guard let weekday = components.weekday,
-              let hour = components.hour,
-              let minute = components.minute else { return false }
-        let minutes = hour * 60 + minute
-
-        func starts(on day: Int) -> Bool {
-            rule.weekdays.isEmpty || rule.weekdays.contains(day)
-        }
-
-        if rule.startMinutes < rule.endMinutes {
-            return starts(on: weekday) && minutes >= rule.startMinutes && minutes < rule.endMinutes
-        }
-        // Wrapped past midnight (an equal start and end reads as a full day).
-        if minutes >= rule.startMinutes { return starts(on: weekday) }
-        if minutes < rule.endMinutes {
-            let yesterday = weekday == 1 ? 7 : weekday - 1
-            return starts(on: yesterday)
-        }
-        return false
+        let condition = TimeWindowCondition(
+            startMinutes: rule.startMinutes, endMinutes: rule.endMinutes, weekdays: rule.weekdays
+        )
+        return TimeWindowEvaluation.evaluate(condition, at: date, calendar: calendar) == .satisfied
     }
 }
