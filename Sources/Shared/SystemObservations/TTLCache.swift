@@ -1,3 +1,4 @@
+// Moved from KeepressoCore/TTLCache.swift, upstream 7ea73a6.
 import Foundation
 
 /// A small time-boxed cache: holds one probed value for `ttl` seconds, then

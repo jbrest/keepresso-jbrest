@@ -6,10 +6,15 @@ Update it after each milestone.
 
 ## Current stage
 
-A2 review accepted. A3 complete; A4 CPU/cache extraction next, followed by the
-new Claude Code checkpoint before A5.
+A3 and A4 complete. Stopped at the Claude Code review checkpoint before A5.
 
 ## Done
+
+- 2026-11-02: A4 CPU/cache extraction complete. Original CPU reader injection
+  and smoothing test seams remain. TTLCache has one shared definition, re-exported
+  under its existing name. All 1,177 baseline identities retained; 1,208 tests
+  pass. Package and unsigned consumer builds, import guard and I1 pass.
+  Evidence: docs/sleepless-hollow/evidence/A4.md.
 
 - 2026-11-02: A3 complete, including restoration of retained upstream power API
   comments. Original TimeWindowRule Codable and presentation remain; shared
@@ -64,8 +69,9 @@ new Claude Code checkpoint before A5.
 
 ## Next
 
-1. A4 CPU reader/evaluation and TTLCache move, preserving old test seams.
-2. Stop for Claude Code review after A4, before A5.
+1. Claude Code review of A3/A4: CPU smoothing, cache ownership, retained test
+   seams and S4 state comments. See evidence/A3.md and evidence/A4.md in the plan.
+2. Address review findings before A5 throughput extraction.
 
 ## Review checkpoints (Claude Code)
 
@@ -90,6 +96,7 @@ fixed on `sh/foundation`. Submission needs jbrest's approval.
 | ID | File:line (rev) | Problem and user effect | Severity | Status | Test / branch |
 | --- | --- | --- | --- | --- | --- |
 | U1 | `Sources/KeepressoCore/Preset.swift`:68 (`7ea73a6`) | The "Remote Session (SSH)" preset matches any process containing `sshd:` or `sshd-session`. That may include connections that have not logged in yet, so a scanner probing port 22 could keep the Mac awake while the login grace period runs. macOS launches sshd per connection, so the actual pre-auth process names need checking. | low (if real) | suspected | Check in Stage A step 7 |
+| U2 | `Sources/KeepressoCore/CPULoad.swift`:54-58 (`7ea73a6`) | Delta calculation guards increasing total ticks but subtracts unsigned busy ticks without checking their order. A decreasing busy count with increasing total could trap; whether macOS produces this combination needs investigation. Preserved in extraction. | low (real-world reachability unproven) | suspected, source review only | Separate upstream-fix regression and counter-wrap/reset investigation before proposing a fix |
 
 ## Possible Keepresso improvements (not bugs)
 

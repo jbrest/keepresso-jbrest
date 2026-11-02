@@ -131,6 +131,7 @@ edited. That includes:
 | A2 power | PowerSource.swift; Trigger.swift power wrapper (entire files reviewed) | U 7ea73a6 | snapshot moved to RuleModel by re-export only; IOKit acquisition adapted to SystemObservations; matching adapted to RuleEvaluation; Keepresso compatibility wrappers retained | 2026-11-02: no new upstream bug candidate; model/reader/evaluator provenance comments cite U | See A2 commit |
 | A3 time window | TimeWindow.swift | U 7ea73a6 | condition value/evaluator adapted; product Codable/labels and trigger retained | 2026-11-02: whole file reviewed; none | See A3 commit |
 
+| A4 CPU/cache | CPULoad.swift; TTLCache.swift | U 7ea73a6 | counter reader/cache moved; smoothing evaluator adapted; Core reader and step seams retained | 2026-11-02: both whole files reviewed; suspected U2 in NOTES.md | See A4 commit |
 
 ## Compatibility state per moved condition
 
@@ -142,6 +143,13 @@ move; it is the scope for any later, separately agreed behavior improvement.
 | Condition | Compatibility-only or mixed state | Upstream source | Later change that could remove it |
 | --- | --- | --- | --- |
 | Power source (A2) | No retained mutable compatibility state. Legacy fallback snapshot and unknown-to-Bool policy stay in Keepresso wrappers; immutable reader ownership is operational. | U PowerSource.swift:57-59; Trigger.swift:88-94 | A future explicit-unavailability interface could remove the fallback/coercion, not the acquisition backend. |
+
+| CPU load (A4) | Mixed: smoothing/hysteresis state is operational; Core reevaluates retained average against the current threshold after failed reads for compatibility. Counter history and TTL caching are operational. | U CPULoad.swift:124-153; S4 comment on Core state | A separately agreed missing-data policy could remove retained-average fallback, while retaining smoothing for valid samples. |
+| Time window (A3) | No retained compatibility state. | U TimeWindow.swift:77-97 | None needed. |
+
+TTLCache now has one definition in SystemObservations, re-exported through
+KeepressoCore. Existing Bluetooth, Diagnostics and ThermalBackends clients and
+all original Core tests are unchanged. No duplicate alias is introduced.
 
 ### A2 ownership and wire notes
 

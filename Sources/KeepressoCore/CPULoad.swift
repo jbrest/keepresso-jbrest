@@ -1,4 +1,5 @@
 import Foundation
+import SystemObservations
 
 /// Abstraction over the machine's overall CPU usage so a load trigger can be
 /// tested with scripted readings. Mirrors the other monitor seams.
@@ -22,19 +23,14 @@ public final class HostCPULoadReader: CPULoadReading {
         var total: UInt64
     }
 
-    private var previous: Ticks?
-    private let ttl: TimeInterval
-    private let now: () -> Date
-    private let readTicks: () -> Ticks?
-    /// The probe reads `self` (the delta advances ``previous``), so the cache is
-    /// built lazily on first read, once `self` is fully initialized, and holds
-    /// `self` unowned: the cache and this reader share a lifetime.
-    private lazy var cache = TTLCache<Double?>(ttl: ttl, now: now) { [unowned self] in
-        self.readLoadDelta()
-    }
+    private let reader: CPUUsageObserving
 
     public convenience init() {
-        self.init(readTicks: Self.machTicks)
+        self.init(reader: MachCPUUsageReader())
+    }
+
+    private init(reader: CPUUsageObserving) {
+        self.reader = reader
     }
 
     /// The tick source and clock are injectable so the delta and TTL logic can
@@ -44,35 +40,16 @@ public final class HostCPULoadReader: CPULoadReading {
         now: @escaping () -> Date = Date.init,
         readTicks: @escaping () -> Ticks?
     ) {
-        self.ttl = ttl
-        self.now = now
-        self.readTicks = readTicks
+        self.reader = MachCPUUsageReader(ttl: ttl, now: now, readCounters: {
+            readTicks().map { CPUCounterSample(busy: $0.busy, total: $0.total) }
+        })
     }
 
-    public func currentLoad() -> Double? { cache.current }
-
-    private func readLoadDelta() -> Double? {
-        guard let ticks = readTicks() else { return nil }
-        defer { previous = ticks }
-        guard let previous, ticks.total > previous.total else { return nil }
-        return Double(ticks.busy - previous.busy) / Double(ticks.total - previous.total)
-    }
-
-    /// The real sample: Mach's cumulative per-state CPU tick counters.
-    private static func machTicks() -> Ticks? {
-        var size = mach_msg_type_number_t(
-            MemoryLayout<host_cpu_load_info_data_t>.stride / MemoryLayout<integer_t>.stride
-        )
-        var info = host_cpu_load_info_data_t()
-        let result = withUnsafeMutablePointer(to: &info) { pointer in
-            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(size)) {
-                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &size)
-            }
+    public func currentLoad() -> Double? {
+        switch reader.observe() {
+        case .available(let fraction, _): return fraction
+        case .unavailable: return nil
         }
-        guard result == KERN_SUCCESS else { return nil }
-        // cpu_ticks lanes: 0 = user, 1 = system, 2 = idle, 3 = nice.
-        let busy = UInt64(info.cpu_ticks.0) + UInt64(info.cpu_ticks.1) + UInt64(info.cpu_ticks.3)
-        return Ticks(busy: busy, total: busy + UInt64(info.cpu_ticks.2))
     }
 }
 
@@ -90,10 +67,10 @@ public final class CPULoadTrigger: Trigger {
 
     /// Smoothing weight of each new sample; ~0.25 at one sample per second
     /// means a sustained change settles in a few seconds.
-    static let alpha = 0.25
+    static let alpha = CPUThresholdEvaluation.alpha
     /// How far (as a fraction) the average must fall below the threshold to
     /// turn off again.
-    static let hysteresis = 0.05
+    static let hysteresis = CPUThresholdEvaluation.hysteresis
 
     public struct SmoothingState: Equatable, Sendable {
         public var average: Double?
@@ -102,6 +79,8 @@ public final class CPULoadTrigger: Trigger {
     }
 
     private let reader: CPULoadReading
+    // Mixed state: smoothing/hysteresis is operational; failed-read reevaluation
+    // of its retained average preserves U CPULoad.swift:124-153 (S2/S4).
     private var state = SmoothingState()
 
     public init(thresholdPercent: Int, reader: CPULoadReading = HostCPULoadReader()) {
@@ -125,31 +104,18 @@ public final class CPULoadTrigger: Trigger {
     /// (failed read) keeps the previous average and verdict rather than
     /// dropping an active session on a transient hiccup.
     static func step(_ state: SmoothingState, sample: Double?, thresholdPercent: Int) -> SmoothingState {
-        var next = state
-        // A non-positive threshold is malformed (the picker never makes one).
-        // Treat it as "never satisfied" instead of the always-true it would
-        // otherwise compute (average >= 0), so a corrupt or imported rule can't
-        // pin the Mac awake with nothing able to release it.
-        guard thresholdPercent > 0 else {
-            next.average = nil
-            next.isSatisfied = false
-            return next
-        }
+        var shared = CPUThresholdState()
+        shared.average = state.average
+        shared.isSatisfied = state.isSatisfied
+        let next: CPUThresholdState
         if let sample {
-            let clamped = min(max(sample, 0), 1)
-            next.average = state.average.map { $0 + alpha * (clamped - $0) } ?? clamped
+            next = CPUThresholdEvaluation.step(shared, sample: sample, thresholdPercent: thresholdPercent)
+        } else {
+            next = CPUThresholdEvaluation.reevaluate(shared, thresholdPercent: thresholdPercent)
         }
-        guard let average = next.average else {
-            next.isSatisfied = false
-            return next
-        }
-        let on = Double(thresholdPercent) / 100
-        // Keep the release band strictly below `on` but always positive: a flat
-        // `on - hysteresis` goes <= 0 for thresholds <= 5%, which (with the
-        // average clamped to 0...1) would make the release test always true and
-        // latch the trigger on forever.
-        let off = max(on - hysteresis, on * 0.5)
-        next.isSatisfied = state.isSatisfied ? average >= off : average >= on
-        return next
+        var result = SmoothingState()
+        result.average = next.average
+        result.isSatisfied = next.isSatisfied
+        return result
     }
 }
