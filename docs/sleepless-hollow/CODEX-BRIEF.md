@@ -410,6 +410,37 @@ or two sittings rather than separate requests. The plan covers:
 - **Order:** read-only and low-risk steps first. The reboot and no-login steps
   come last.
 
+## Hands-on plan and U1 decision (2 November 2026)
+
+This supersedes the "Next task" in the A7 review above. jbrest and Claude Code
+drafted [HANDS-ON-PLAN.md](HANDS-ON-PLAN.md) for the real setup: the target is
+the headless Studio, reached only by Screen Sharing or SSH, with FileVault on.
+Do the "Codex tasks" at the end of that file, then stop as it says.
+
+**U1 is reclassified (jbrest's view, Claude Code agrees).** The preset almost
+certainly behaves as intended:
+- On macOS, Remote Login is inetd-style, so there is no idle `sshd` listener.
+  Every `sshd`-family process belongs to a live connection.
+- Keeping the Mac awake while someone is connecting, including while typing a
+  password, fits the preset's purpose.
+- Unauthenticated connections end within the login grace period, and most Macs
+  are not exposed to the internet on port 22.
+
+Move U1 to "Possible Keepresso improvements (not bugs)", with that reasoning.
+Do not propose a fix upstream. Sitting 1, steps 1.1 and 1.2, still records the
+facts.
+
+**New open decision O16, for jbrest.** Should SH's SSH condition count only
+authenticated sessions (F4, current plan), or any incoming SSH connection?
+- **Any incoming connection** can be identified robustly by executable path
+  (`sshd`, `sshd-session`), without parsing process titles. A pre-auth
+  connection only keeps the Mac awake for the login grace period.
+- **Authenticated-only** depends on title formats that vary between OpenSSH
+  versions, and fails to "unsupported" when one is unrecognized.
+
+Sitting 1, including the dirty-disconnect step 1.8, provides the evidence.
+Record O16 in DECISIONS.md and settle it after sitting 1.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
