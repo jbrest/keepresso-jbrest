@@ -6,10 +6,16 @@ Update it after each milestone.
 
 ## Current stage
 
-Stage 0 and A1 complete. Stopped before A2 for the settled Claude Code review
-checkpoint. No power-source or other existing condition has moved.
+A1 accepted after Claude Code review. Items 1-4 applied with durable evidence;
+A2 power-source move is authorized, including the RuleVerdict rename/naming rule.
 
 ## Done
+
+- 2026-11-02: Applied Claude's A1 review items 1-4. Removed unnecessary shared
+  library products; targets remain. Re-ran the non-quiet unsigned app build:
+  exit 0 and BUILD SUCCEEDED. Full package/test baseline remains green.
+  Durable summary: docs/sleepless-hollow/evidence/A1.md. Every step now requires
+  import, identity and I1 checks plus a committed short evidence summary.
 
 - 2026-11-02: A1 scaffolding complete. RuleModel, RuleEvaluation and
   SystemObservations are actual SwiftPM targets/products; KeepressoCore depends

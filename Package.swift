@@ -9,9 +9,6 @@ let package = Package(
     ],
     products: [
         .library(name: "KeepressoCore", targets: ["KeepressoCore"]),
-        .library(name: "RuleModel", targets: ["RuleModel"]),
-        .library(name: "RuleEvaluation", targets: ["RuleEvaluation"]),
-        .library(name: "SystemObservations", targets: ["SystemObservations"]),
         // The caffeinate-style CLI. Built here for the dev loop; the release
         // app embeds the identically sourced `keepresso-cli` Xcode target.
         .executable(name: "keepresso", targets: ["keepresso-cli"]),

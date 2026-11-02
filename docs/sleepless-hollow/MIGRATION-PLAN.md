@@ -71,6 +71,17 @@ targets arrive transitively and `project.yml` does not change.
   approval.
 - **I7. Review all upstream code touched.** See the next section.
 
+## Exit checklist for every implementation step
+
+- Every baseline test identity remains and passes, including separately scheduled
+  HelperConnectionTests. Record command results and counts.
+- Run `python3 tools/check-shared-imports.py`.
+- Run the protected I1 diff and confirm it is empty.
+- Save a short durable evidence summary under `docs/sleepless-hollow/evidence/`
+  with commands, identity-check output and build results. Full logs stay out of
+  the repository. Build output must include the exit result or success marker;
+  a quiet empty log alone is not retained evidence.
+
 ## Reviewing touched upstream code
 
 Every upstream file that is moved, wrapped or seeded from gets a correctness
