@@ -6,7 +6,7 @@ Update it after each milestone.
 
 ## Current stage
 
-Stage 0: archive and baseline. Waiting on the Codex review.
+Stage 0: review settled; documentation amendments applied. Baseline capture next.
 
 ## Done
 
@@ -17,27 +17,27 @@ Stage 0: archive and baseline. Waiting on the Codex review.
 - 2026-11-02: Wrote the planning set in `docs/sleepless-hollow/`.
 - 2026-11-02: Added the upstream code review rule (I7) and the candidate
   table below.
+- 2026-11-02: Codex review settled by jbrest after Claude Code review, per
+  CODEX-BRIEF.md Phase 2. Applied S1-S8, recorded P8-P14 and later-stage gates.
 - 2026-11-02: Revised the plan per decision P7. The Keepresso adapter is built
   while modularizing the rules and observations, one condition at a time.
   Keepresso's helper is left alone until Stage E.
 
 ## Next
 
-1. Codex writes `docs/sleepless-hollow/CODEX-REVIEW.md` per CODEX-BRIEF.md.
-2. jbrest settles disagreements, and the docs are updated.
-3. Capture the upstream baseline: `swift build`, `swift test` pass count,
-   toolchain, SDK and macOS. Record it below.
-4. Stage A step 1: scaffolding. Step 2: power source, the pattern-setting move.
+1. Capture the upstream baseline, toolchain/SDK/macOS and baseline test identities.
+2. Stage A1 scaffolding and baseline-identity checks.
+3. Stop for Claude Code review before A2; do not move power-source code yet.
 
 ## Review checkpoints (Claude Code)
 
 Stop and ask jbrest for a Claude Code review at each of these points:
 
-1. After CODEX-REVIEW.md is written, before the docs are changed.
-2. After Stage A step 2 (power source moved and adapted). This sets the pattern
+1. Stage 0 review settled on 2 November in CODEX-BRIEF.md Phase 2.
+2. After A1, before A2; then after A2 (power source moved and adapted). This sets the pattern
    for every later condition.
 3. At the end of Stage A.
-4. After B1 results, before PowerControl is built.
+4. Before B1 experiments, and after B1 results before PowerControl is built.
 5. Before any installed test in Stage D.
 6. Any time an invariant in MIGRATION-PLAN.md would have to be broken, or an
    approach has failed twice.
@@ -50,6 +50,12 @@ fixed on `sh/foundation`. Submission needs jbrest's approval.
 | ID | File:line (rev) | Problem and user effect | Severity | Status | Test / branch |
 | --- | --- | --- | --- | --- | --- |
 | U1 | `Sources/KeepressoCore/Preset.swift`:68 (`7ea73a6`) | The "Remote Session (SSH)" preset matches any process containing `sshd:` or `sshd-session`. That may include connections that have not logged in yet, so a scanner probing port 22 could keep the Mac awake while the login grace period runs. macOS launches sshd per connection, so the actual pre-auth process names need checking. | low (if real) | suspected | Check in Stage A step 7 |
+
+## Possible Keepresso improvements (not bugs)
+
+| ID | Existing behavior | Possible later improvement | Status |
+| --- | --- | --- | --- |
+| K1 | Process and throughput conditions can use retained data indefinitely during repeated reading failures, without showing staleness | Show freshness and optionally bound stale-data retention, only if gyorgysh wants it | Future option; unchanged by refactoring |
 
 ## Baseline
 

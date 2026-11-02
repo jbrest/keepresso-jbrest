@@ -1,14 +1,14 @@
 # Sleepless Hollow: migration and staging plan
 
-Date: 2 November 2026, revised the same day (decision P7). Status: proposed,
-pending Codex review. Current stage: 0 (see [NOTES.md](../../NOTES.md)).
+Date: 2 November 2026, revised the same day (decision P7). Status: Stage A settlement
+accepted by jbrest after Codex and Claude Code review. Current stage: 0 (see [NOTES.md](../../NOTES.md)).
 
 ## Strategy
 
 There are two tracks, chosen by how risky and how actively changed the code is.
 
 **Rules and observations: move and adapt now.** These files have had no upstream
-commits in the last 60 days. The process listing files are the only exception,
+commits from 3 September through 2 November 2026. The process listing files are the only exception,
 with one each. Each condition type moves out of `KeepressoCore` into the shared
 modules. In the same step:
 - Keepresso's existing type becomes a thin wrapper over the shared code.
@@ -21,8 +21,9 @@ The result:
 - every shared boundary has two real consumers while it is being designed.
 
 **Privileged helper: build fresh for SH; adopt in Keepresso later.**
-Keepresso's helper files changed 18 times upstream in 60 days
-(`HelperEngine` 6, `HelperService` 8, `HelperRecovery` 4). They run as root, and
+From 3 September through 2 November 2026, the helper files had 20 file touches
+(`HelperEngine` 7, `HelperService` 9, `HelperRecovery` 4), across 13 distinct
+commits. They run as root, and
 verifying a change to them needs an installed Keepresso test. PowerControl and
 ServiceSupport are therefore built for SH, seeded from Keepresso's code with
 recorded provenance. Keepresso's helper keeps its own code until Stage E.
@@ -45,12 +46,13 @@ targets arrive transitively and `project.yml` does not change.
 
   - In `Sources/KeepressoCore`, only the files listed as "moved" in
     SOURCE-INVENTORY.md may change, plus any new wrapper files.
-  - `Tests/KeepressoCoreTests` may only change by moving a test to the shared
-    module's tests, with an equivalent test left against the wrapper. Deleting
-    an existing test is not allowed.
+  - Every baseline Keepresso test identity must remain and pass. Pure cases may
+    be copied into shared tests. Deleting or renaming a baseline test requires
+    jbrest's approval; unchanged tests continue to exercise the wrappers (S5).
   - `Package.swift` may gain targets and add dependencies to `KeepressoCore`.
 - **I2. Always green.** Every commit passes `swift build` and the full
-  `swift test`. The Keepresso pass count never drops below the Stage 0 baseline.
+  `swift test` with HelperConnectionTests scheduled separately, as upstream
+  does. Every Stage 0 test identity remains and passes, not just the total count.
 - **I3. Behavior preserved.** A moved condition behaves exactly as before
   through its wrapper, including missing readings, empty rule sets, saved
   formats and raw values. Any deliberate difference needs a DECISIONS.md entry
@@ -106,7 +108,7 @@ Style preferences and refactoring opportunities are not findings.
    - severity (high, medium, low);
    - status (suspected, confirmed, rejected or submitted).
 3. **Confirm with a test.** On a separate branch `upstream-fix/<short-name>`,
-   created from `upstream/main`, write a test that fails on upstream code. Then
+   created from `upstream/main` in a separate worktree, write a test that fails on upstream code. Then
    write the smallest fix that makes it pass without breaking the full suite. A
    finding with no failing test stays "suspected". A finding the test disproves
    is marked "rejected", with the reason.
@@ -120,7 +122,9 @@ Style preferences and refactoring opportunities are not findings.
    - is its own small PR, with its test;
    - follows the repo's CLAUDE.md and the conventions of recently merged PRs;
    - is submitted only with jbrest's approval (I6).
-6. **Mark the review done.** Record the review of each file in the "Reviewed"
+6. **Security-critical findings.** Stop at the review checkpoint rather than
+   shipping a known security-critical defect merely to preserve parity.
+7. **Mark the review done.** Record the review of each file in the "Reviewed"
    column of SOURCE-INVENTORY.md's "Done" table, even when nothing was found.
 
 ## Stages
@@ -146,28 +150,37 @@ Exit: the review is settled, the baseline is recorded and the docs are committed
 One condition type per commit or small series, in this order (simplest first,
 which sets the pattern):
 
-1. Scaffolding:
+1. **A1: scaffolding:**
    - empty `RuleModel`, `RuleEvaluation` and `SystemObservations` targets;
    - `KeepressoCore` depends on them and re-exports them;
-   - `Observation`, `Verdict` and the three-state combine, with tests.
-2. Power source:
+   - `Observation`, `Verdict` and the three-state combine, with tests;
+   - a short plain-Python framework/product import check, with no rg dependency
+     or forbidden-import build experiments (S3).
+2. **A2: power source:**
    - snapshot to RuleModel and reader to SystemObservations;
    - matching to RuleEvaluation;
    - `PowerSourceTrigger` becomes a wrapper with its two-state adapter.
-3. Time window: `TimeWindowRule` fields and the evaluator move; the trigger
+3. **A3: time window:** `TimeWindowRule` fields and the evaluator move; the trigger
    becomes a wrapper.
-4. CPU load: reader to SystemObservations, state machine to RuleEvaluation, and
+4. **A4: CPU load (including TTLCache):** reader to SystemObservations, state machine to RuleEvaluation, and
    the trigger becomes a wrapper.
-5. Network throughput: same pattern as CPU load.
-6. Process matching and process listing (`ProcessList`, `SharedPSSnapshot`).
-7. New SH-only conditions:
+5. **A5: network throughput:** same pattern as CPU load.
+6. **A6: processes**, including process matching and listing (`ProcessList`, `SharedPSSnapshot`).
+7. **A7: SSH and console session**, new SH-only conditions:
    - SSH session reader that counts authenticated sessions only (F4), with
      fixtures for authenticated sessions, pre-auth connections and a listener
      only;
    - console session reader prototype, with validation results written up (O5).
-8. Thermal and battery readers, if O8 adopts safety.
+8. **A8: thermal reading**, only if O8 adopts it. Battery level already comes
+   from the power snapshot.
 
 For every move:
+- Preserve the current query/threshold evaluation against retained data when a
+  reading fails. Record reader/cache/state behavior, not only an unknown-to-Bool
+  function (S2).
+- Add one or two source-citing comment lines only for compatibility-only or
+  mixed state; list that state in a short migration table. Purely operational
+  state needs no classification comment (S4).
 - Write down how the old trigger treated a missing reading. Record it as that
   condition's row in the O11 table in DECISIONS.md, and make the adapter
   reproduce it.
@@ -177,13 +190,16 @@ For every move:
   `KeepressoCore`.
 
 Exit:
-- All Keepresso tests pass at or above the baseline count.
+- Every baseline Keepresso test identity exists and passes (S5).
 - The shared modules build with only their declared dependencies.
 - The three-state tests pass.
 - A read-only smoke run of each real reader on a Mac is recorded.
 
 ### Stage B: power mechanism and PowerControl
 
+- **Before B1:** Claude Code and jbrest review the experiment, temporary test
+  identity, installation, cleanup and recovery steps. Existing services remain
+  untouched and global BTM state is not reset.
 - **B1. Experiment** (needs jbrest for reboots and logouts). Compare an
   IOPMAssertion held by a root daemon against `pmset disablesleep`, in each of:
   - lid open with idle sleep due;
@@ -192,7 +208,8 @@ Exit:
   - helper crash;
   - Keepresso's helper holding or restoring the same setting at the same time.
   
-  Record the results and settle O1.
+  Record the results and settle O1, including coordination between two daemons
+  for the selected mechanism before claiming coexistence.
 - **B2. PowerControl**, built for SH and seeded from Keepresso's helper code
   with provenance (I4). It covers the chosen mechanisms, owner union, the
   restore journal, verification and launch reconciliation ordering (F3).
@@ -209,6 +226,10 @@ operations, retained restore debt and reconciliation ordering.
 - SleeplessRuntime: port from the archived Headless files with the fixes listed
   in SOURCE-INVENTORY.md.
 - The `sleepless-helper` executable.
+- Stage C design gates: removal timeout/disconnect recovery and crash-atomic
+  behavior at every phase; F2 rollback bound to owner/token and policy revision.
+- Stage C design gates: autosave revision/conflict handling, startup-failure
+  evidence and bounded external calls. Settle these here, not in Stage A.
 
 Exit:
 - The ported archived tests pass, plus a regression test for each listed defect.
@@ -252,8 +273,8 @@ Exit:
    on current `upstream/main`. It contains no SH code, no SH docs and no
    fork-only changes. Cover five points:
    - what moved;
-   - the evidence that nothing visible changed (zero UI diff, equal or higher
-     test count);
+   - the evidence that nothing visible changed (zero UI diff, all baseline test
+     identities preserved and passing, and consumer builds);
    - what gyorgysh gains;
    - that they never need to touch SH;
    - jbrest's commitment, including fixing Keepresso regressions caused by the

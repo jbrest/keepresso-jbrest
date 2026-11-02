@@ -15,21 +15,28 @@ date and who decided, then update the affected doc.
 | P5 | Nothing is pushed or posted upstream without jbrest's explicit approval. | 2026-11-02 |
 | P6 | Codex reviews this plan and does most of the implementation. Claude Code reviews at the checkpoints in NOTES.md. | 2026-11-02 |
 | P7 | Build the Keepresso adapter, including the three-state to two-state adapter, while modularizing the rules and observations: each condition moves and is adapted in one step. Keepresso's privileged helper keeps its own code until Stage E. SH's power and service modules are built fresh, seeded from it. Upstream PR #31 is not a concern. | 2026-11-02 |
+| P8 | S2 adapter contract: preserve reader/cache/state behavior and evaluate current queries or thresholds against retained data when readings fail; last-verdict fallback alone is forbidden. | 2026-11-02 |
+| P9 | S3 scope: settle only Stage A blockers now; record later stage gates without designing them; review before B1; use separate upstream-fix worktrees; stop for security-critical findings; use a small plain-Python import check, no rg or forbidden-import build experiments. | 2026-11-02 |
+| P10 | S4 state comments: one or two source-citing lines only for compatibility-only or mixed state, with the same state listed in condition migration notes; no classification comment for purely operational state. | 2026-11-02 |
+| P11 | S5 parity: capture baseline test identities; every identity remains and passes after a move. Deleting or renaming requires approval; additional tests do not substitute for baseline tests. | 2026-11-02 |
+| P12 | S6: TTLCache moves to SystemObservations at A4; KeepressoCore retains its name for unchanged users. | 2026-11-02 |
+| P13 | S7 stable IDs: A1 scaffolding, A2 power, A3 time, A4 CPU/cache, A5 throughput, A6 processes, A7 SSH/console, A8 optional thermal. | 2026-11-02 |
+| P14 | S8: stale retained readings without user-visible freshness are a possible future Keepresso improvement, not a bug or a refactor behavior change. | 2026-11-02 |
 
 ## Technical decisions (proposed by Claude Code; open to Codex challenge)
 
 | ID | Decision | Reason |
 | --- | --- | --- |
-| T1 | Two tracks (see P7). Rules and observations move with wrappers now. Helper code is seeded for SH and adopted by Keepresso in Stage E. | Rule and observation files had no upstream commits in 60 days, except one each for process listing. Helper files had 18 and need installed testing. |
-| T2 | SwiftPM target dependencies enforce module boundaries | The compiler checks them; no `rg`-based script |
+| T1 | Two tracks (see P7). Rules and observations move with wrappers now. Helper code is seeded for SH and adopted by Keepresso in Stage E. | Rule and observation files had no upstream commits in 60 days, except one each for process listing. Helper files had 20 file touches over 13 distinct commits from 2026-09-03 through 2026-11-02 and need installed testing. |
+| T2 | SwiftPM target dependencies enforce module boundaries | The compiler checks project dependencies; a small plain-Python framework/product import check supplements it |
 | T3 | Each product owns its saved and wire formats; shared types are mapped, not serialized directly | Shared type changes cannot silently break files or protocols |
 | T4 | Three-state verdicts with Kleene any/all; unavailable is never false | Required for honest headless status |
 | T5 | PowerControl covers keep-awake holds only | AWDL, keyboard lock and fans are not power control and SH doesn't need them |
 | T6 | No `SharedSupport` module until a second real consumer exists | Avoids a grab-bag |
-| T7 | SH helper protocol starts at version 1 under its own identity | No coupling to Keepresso's protocol 16 |
+| T7 | SH helper protocol starts at version 1 under its own identity | No coupling to upstream protocol 12 or archived fork protocol 16 |
 | T8 | The SH app is built from its own XcodeGen spec (`SleeplessHollow.yml`) | Leaves upstream `project.yml` untouched |
 | T9 | The SH app depends only on contracts and ServiceSupport, not on the runtime or rule modules | Only the service evaluates; the UI cannot drift from it |
-| T10 | Launch reconciliation runs after the first evaluation | Fixes the update handover gap (F3) |
+| T10 | Launch reconciliation runs after the first evaluation | Addresses restore/reacquire ordering (F3); mechanism-specific continuity still needs testing |
 
 ## Open
 
@@ -39,22 +46,22 @@ date and who decided, then update the affected doc.
 | O2 | SH bundle identifiers, service name and signing team | D1 | `sh.gyorgy.*` must not be used. Team `DUBDVK9FC2` was used for archive testing; confirm it is jbrest's. |
 | O3 | Final product name ("Sleepless Hollow" is provisional) | Before D1 | |
 | O4 | Policy-change authentication: admin group only, or fresh authentication per change; interaction with autosave | C | Archive: admin group membership via `getgrouplist` |
-| O5 | Console-session condition: any qualifying console user or a selected account; fast user switching; virtual sessions | A2 | See PRODUCT.md |
+| O5 | Console-session condition: any qualifying console user or a selected account; fast user switching; virtual sessions | A7 | See PRODUCT.md |
 | O6 | Status-only menu-bar item in addition to the window | D1 | |
 | O7 | Disabling keeps the service installed (proposed) | D1 | |
 | O8 | Thermal and battery safety: whether, thresholds, and how it is reported | C | Keepresso has `ThermalGuard`; SH runs unattended |
 | O9 | Remote-lockout warning when a policy could stop a remote Mac from being reachable | D1 | |
 | O10 | What SH does with an aggregate `unknown`: hold, release, or keep the last known state | C | Must be shown in status |
-| O11 | How Keepresso's two-state adapter maps `unknown`, per condition type, reproducing current behavior exactly | A, per condition | Fill in the table below as each condition moves |
+| O11 | How each Keepresso compatibility adapter preserves retained data, current-parameter evaluation and Bool results | A, per condition | Fill in the table below as each condition moves |
 | O12 | Long-term home for SH: this fork or its own repository. GPLv3 applies either way, since SH is derived from Keepresso. | After D | |
 | O13 | First-run condition list: empty (proposed) or a visible preset | D1 | |
 
-## O11: two-state mapping per condition
+## O11: compatibility behavior per condition
 
 Record how each Keepresso trigger behaved with a missing or unknown reading
 before its move, and confirm the adapter reproduces it. Cite the source line.
 
-| Condition | Pre-move behavior on missing reading | Source | Adapter maps `unknown` to |
+| Condition | Pre-move behavior on missing reading | Source | Adapter preserves |
 | --- | --- | --- | --- |
 | Power source | | | |
 | Time window | (no reading; always known) | | |

@@ -28,7 +28,8 @@ localization, factories, the `Trigger` protocol and saved Codable shapes stay in
 | `NetworkThroughput.swift` | `GetifaddrsThroughputReader`; smoothing, units and release fraction | SystemObservations; RuleEvaluation | `NetworkThroughputTrigger` wrapper |
 | `PowerSource.swift` | `PowerSourceSnapshot` and reader | RuleModel; SystemObservations | Type alias if needed |
 | `ProcessList.swift`, `SharedPSSnapshot.swift` | Process listing and parsing | SystemObservations | Type aliases or wrappers |
-| `Thermal.swift`, `BatteryLowPower.swift` | Readings only, if O8 adopts safety | SystemObservations | `ThermalGuard` and its policy |
+| `TTLCache.swift` | Neutral cache implementation at A4; preserve existing user-visible name | SystemObservations | Compatibility name for unchanged Bluetooth, Diagnostics and ThermalBackends users |
+| `Thermal.swift` | Relevant values/protocols only, if O8 adopts safety at A8 | RuleModel, SystemObservations | Labels and Keepresso thermal policy |
 
 Tests: the originals in `Tests/KeepressoCoreTests` keep running against the
 wrappers unchanged. Pure-logic cases may also be copied into the shared module's
@@ -45,8 +46,9 @@ behavior from them, with provenance recorded (I4) and checked after each rebase
 | --- | --- | --- | --- |
 | `PowerAssertion.swift` | IOPMAssertion wrapper | PowerControl assertion mechanism | adapted |
 | `HelperEngine.swift` | Restore markers, `FileRestoreState`, the `disablesleep` apply/restore path, `HelperShutdownPolicy` | PowerControl journal and disablesleep mechanism; SleeplessRuntime idle exit | redesigned |
-| `HelperService.swift` | Code-signing requirement construction (~L144), XPC client patterns | ServiceSupport | redesigned |
+| `HelperService.swift` | Peer validation/requirement symbols and XPC client patterns (cite U symbols; archive offsets differ) | ServiceSupport | redesigned |
 | `HelperRecovery.swift` | Recovery state primitives | ServiceSupport | adapted |
+| `Sources/Keepresso/ThermalBackends.swift` (reference only) | SystemThermalPressure reader behavior, if O8 adopts it; no app edits | Separate SH reader | reference |
 | `Preset.swift` (~L60-68) | Comments on the `sshd:` versus `sshd-session` process names | SSH reader (reference only) | reference |
 
 Seeded tests to adapt:
@@ -67,7 +69,7 @@ Seeded tests to adapt:
 | `KeepressoCore/HelperService.swift` (fork parts) | ~360 changed | `HelperAdministratorIdentity` and `HelperAdministratorAuthorization` (~L159-230) to ServiceSupport, keeping the `getgrouplist` fix | adapted |
 | `keepresso-helper/main.swift` | 563 | Reference for `sleepless-helper`: listener, `shouldAccept`, idle exit | redesigned, with fix F3 |
 | `Tests/Fixtures/HelperPeerProbe/` | 48 | ServiceSupport test fixture | verbatim |
-| `tools/headless-ssh-client-test.py` | 67 | Kept for SSH validation in A2 and D3 | verbatim |
+| `tools/headless-ssh-client-test.py` | 67 | Kept for SSH validation in A7 and D3 | verbatim |
 | `tools/clean-headless-test-state.sh` | 262 | Rewritten for SH identity in D2 | redesigned |
 | `tools/localization/catalog_headless_*.py` | ~915 | Reference for SH strings in D1 | reference |
 
@@ -84,11 +86,11 @@ Each one gets a regression test in the stage named.
 | ID | Defect (rev A) | Fix | Stage |
 | --- | --- | --- | --- |
 | F1 | `prepareForRemoval` only requires an administrator when a policy is enabled. A non-admin can therefore set `removalPrepared` and block admins until the helper exits. | Starting removal always requires an administrator | C |
-| F2 | Cancelling removal leaves a previously enabled policy disabled | Cancel restores the accepted policy that existed before preparation | C |
-| F3 | `restoreAtLaunch()` runs before `supervisor.start()`, so an update briefly releases and then re-acquires the hold | Reconcile the journal after the first evaluation (see ARCHITECTURE.md, PowerControl) | B2, C |
-| F4 | The SSH classifier counts any `sshd:` or `sshd-session` process, including pre-auth connections | Count authenticated sessions only; the method is validated in A2 | A2 |
-| F5 | Removal during an active `disablesleep` hold is unproven and suspected to leave the setting changed | The removal transaction verifies release before unregistering; installed test in D3 | C, D3 |
-| F6 | No thermal or battery safety in the service | Per O8 | C |
+| F2 | Cancellation currently clears flags without restoring the prior policy; source behavior confirmed | Define owner/token/revision-bound rollback and crash recovery before implementation | C |
+| F3 | Restore-before-supervisor ordering allows restore/reacquire; a live sleep event is not proven | Reconcile after first evaluation; verify mechanism-specific continuity, invalid policy and unknown demand | B2, C |
+| F4 | Name-based candidates do not establish authentication; actual pre-auth matches need macOS evidence | Validate authenticated-only detection; report unsupported if reliable detection is unavailable | A7 |
+| F5 | Installed acceptance gap, not a demonstrated defect; archive already verifies release/readback and preserves debt | Retain that mechanism and prove removal during an actual enforcing hold, including original value true | C, D3 |
+| F6 | Optional safety feature absent; O8 is open, so not yet a confirmed defect | Define policy and tests if O8 adopts safety | C |
 
 Upstream note: the upstream SSH preset uses the same process-name match
 (`Preset.swift` ~L68), so F4 may also affect Keepresso. It is tracked as
@@ -98,12 +100,12 @@ upstream.
 
 ## Deliberately not carried forward
 
-- All Headless changes to Keepresso's app shell: about 2,955 lines over 30 files
+- All Headless changes to Keepresso's app shell: 2,955 added and 183 removed lines over 30 files
   at rev A, including the `PreferencesView` section (+721), the `WelcomeView` and
   `SetupView` changes, and the Headless strings in 15 languages.
 - The `HeadlessTest` target and plist in `project.yml`, and the helper's
   `HeadlessTest-Info.plist`.
-- Protocol 16 extensions to Keepresso's helper XPC protocol. SH has its own
+- Protocol 16 archive extensions to Keepresso's helper XPC protocol. SH has its own
   service.
 - `tools/architecture/check_boundaries.py`. SwiftPM dependencies enforce the
   boundaries instead.
@@ -126,3 +128,14 @@ edited. That includes:
 | Unit | Source | Rev | Moved, seeded or ported | Reviewed (I7): date, candidate IDs or "none" | Commit |
 | --- | --- | --- | --- | --- | --- |
 | | | | | | |
+
+## Compatibility state per moved condition
+
+Per settlement S4, record only compatibility-only or mixed state and the source
+for the preserved behavior. Operational counters, smoothing and cache machinery
+need normal comments, not classification labels. Fill this table as conditions
+move; it is the scope for any later, separately agreed behavior improvement.
+
+| Condition | Compatibility-only or mixed state | Upstream source | Later change that could remove it |
+| --- | --- | --- | --- |
+| None moved yet | | | |

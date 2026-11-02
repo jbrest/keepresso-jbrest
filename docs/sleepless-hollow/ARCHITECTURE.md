@@ -1,7 +1,7 @@
 # Sleepless Hollow: target architecture
 
-Date: 2 November 2026, revised the same day (decision P7). Status: proposed,
-pending Codex review. Scope: the modules Sleepless Hollow (SH) needs. Keepresso
+Date: 2 November 2026, revised the same day (decision P7). Status: Stage A design settled
+by jbrest after Codex and Claude Code review. Scope: the modules Sleepless Hollow (SH) needs. Keepresso
 adopts the rule and observation modules as they are built (Stage A) through
 wrappers and a two-state adapter, with no UI changes. Keepresso's helper adopts
 PowerControl and ServiceSupport later (Stage E).
@@ -102,8 +102,8 @@ modules arrive transitively.
 - `PowerSourceCondition` with the same cases and raw values as Keepresso's
   `PowerSourceTrigger.Match` (`onACPower`, `onBattery`, `charging`).
 - `ProcessCondition`: name query plus explicit scope (current user or all
-  users). Matching semantics follow Keepresso's `ProcessTrigger`. Keepresso's
-  `frontmost` mode needs a GUI session; it is modeled but SH does not offer it.
+  users). Matching semantics follow Keepresso's `ProcessTrigger`. Frontmost
+  matching belongs to `AppTrigger`, not this process condition.
 - `SSHSessionCondition` and `ConsoleSessionCondition` (new; see PRODUCT.md).
 - `TimeWindowCondition` with Keepresso's `TimeWindowRule` fields and meaning:
   minutes from midnight, weekdays, inclusive start, exclusive end, overnight
@@ -122,8 +122,9 @@ modules arrive transitively.
 - `Verdict`: `satisfied`, `unsatisfied`, `unknown`.
 - One evaluator per condition type, pure and synchronous.
 - CPU and throughput state machines with Keepresso's smoothing weight,
-  hysteresis and release fraction. An unavailable sample does not advance the
-  state (the archived SH behavior).
+  hysteresis and release fraction. Missing samples do not change the average;
+  the Keepresso adapter still reevaluates the current threshold against that
+  average, as required by settlement S2. SH reports raw unavailability separately.
 - Three-state combine (Kleene logic):
   - `any`: satisfied if any is satisfied; otherwise unknown if any is unknown;
     otherwise unsatisfied.
@@ -131,13 +132,14 @@ modules arrive transitively.
     unknown; otherwise satisfied.
   - Empty list: follows Keepresso's existing empty-rule behavior.
 - What a product does with an aggregate `unknown` is product policy, not
-  evaluation. SH's choice is open decision O10. Keepresso's two-state adapter is
-  Stage E.
+  evaluation. SH's choice is open decision O10. Keepresso's compatibility adapter is built in
+  Stage A, preserving reader history and current-parameter reevaluation.
 
 ### SystemObservations
 
-Each reader sits behind a protocol, returns `Observation` values and holds no
-decision state. Readers:
+Each reader sits behind a protocol and returns `Observation` values. Acquisition
+state such as previous counters, caches and refresh coordination stays with the
+reader; threshold and grace decisions stay in evaluation. Readers:
 
 - Power source (IOKit power sources).
 - Process list.
@@ -148,7 +150,10 @@ decision state. Readers:
   `loginwindow` and system or setup accounts. Method and fast user switching
   behavior need validation.
 - CPU counters (host statistics) and interface byte counters (`getifaddrs`).
-- Thermal state and battery level, for SH safety if O8 adopts it.
+- Thermal state and battery level, for SH safety if O8 adopts it. Battery level
+  comes from the power snapshot. Thermal.swift defines values/protocols; the
+  app's ThermalBackends.swift is a reference for a separately implemented SH
+  reader, not code to move out of Keepresso's app.
 
 Readers needing a GUI session or TCC permission go in a separate subtarget so
 the service never links them.
@@ -170,8 +175,8 @@ schedules and sleep watchdogs stay in Keepresso.
 - Restore journal: write the original value before changing anything; keep
   retrying failed restores without losing the debt.
 - Launch reconciliation runs after the host has computed current demand. This
-  closes the archived update gap, where `restoreAtLaunch()` released the hold
-  before the supervisor started and could re-acquire it.
+  addresses the archived restore/reacquire ordering. Mechanism-specific
+  continuity, invalid policy and unknown initial demand still require tests.
 
 ### ServiceSupport
 
@@ -221,7 +226,8 @@ schedules and sleep watchdogs stay in Keepresso.
   4. Report ready to unregister.
   
   Fixes carried in (see SOURCE-INVENTORY.md): only an administrator can start
-  removal, and cancelling it restores the previous enabled state.
+  removal. Owner-bound, revision-checked cancellation and crash/timeout
+  recovery are Stage C design gates before implementing rollback.
 - Launch handover: load policy, sample, evaluate, then reconcile the journal
   against current demand.
 - Idle exit only when there is no demand, no pending restore debt and no
@@ -240,10 +246,16 @@ schedules and sleep watchdogs stay in Keepresso.
   `Trigger` conformance, labels, factories and permission behavior. Their
   evaluation delegates to RuleEvaluation and their readings come from
   SystemObservations.
-- Two-state adapter: one small function per condition type, mapping `Verdict`
-  to `Bool`. It reproduces exactly how that trigger treated a missing or unknown
-  reading before the move, so it is not one global rule. Each mapping is
-  recorded in DECISIONS.md (O11 table).
+- Compatibility adapter per condition: preserve cached samples, refresh timing
+  and evaluator state as well as the final Bool. Edited queries are matched
+  against retained process data, and changed thresholds against retained
+  averages, even when readings fail. Record the behavior in DECISIONS.md O11;
+  a last-verdict fallback alone is not equivalent (S2).
+- Comment compatibility-only or mixed state in one or two lines per cohesive
+  structure, citing its upstream source. List that state in the condition's
+  migration notes; ordinary operational state needs no classification (S4).
+- TTLCache moves to SystemObservations at A4; KeepressoCore preserves the name
+  for existing users without editing those users (S6).
 - Saved formats (`RuleSet`, `TriggerRule`, `TimeWindowRule` Codable shapes and
   raw values) stay owned by `KeepressoCore` and map to and from shared values.
 

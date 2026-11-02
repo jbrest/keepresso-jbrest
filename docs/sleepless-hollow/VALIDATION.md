@@ -38,12 +38,12 @@ Stages A to D (shared modules, Keepresso wrappers and SH):
 | Area | Required check | Evidence to retain |
 | --- | --- | --- |
 | Keepresso UI and helper untouched | Invariant I1 diff is empty; only listed KeepressoCore files changed | Command output per commit series |
-| Keepresso parity | Full Keepresso test suite passes at or above the Stage 0 count after every moved condition; no existing test deleted | Test logs with counts |
+| Keepresso parity | Every baseline Keepresso test identity remains and passes after every move; no deletion or rename without approval | Test logs with counts |
 | Settings | Existing saved rules, import/export, malformed inputs and raw values decode identically through the wrappers | Fixtures captured from rev U before each move |
-| Two-state adapter | Each condition's missing-reading behavior matches the O11 table | One test per row |
+| Two-state adapter | Each condition preserves cached data, refresh timing, current-parameter evaluation and Bool behavior per O11 | One test per row |
 | Provenance | Every seeded or ported unit listed in SOURCE-INVENTORY.md with source and revision | Inventory plus the provenance check after each rebase |
 | Upstream code review (I7) | Every moved, wrapped or seeded upstream file reviewed; each finding recorded, and confirmed or rejected by a test against `upstream/main` | "Reviewed" column in SOURCE-INVENTORY.md; candidate table in NOTES.md; `upstream-fix/` branches |
-| Module boundaries | Each target builds with only its declared dependencies | `swift build` per target |
+| Module boundaries | Each target builds with only its declared dependencies | `swift build` per target plus the small plain-Python forbidden framework/product import check |
 | Conditions | Ported semantics match Keepresso: matching, smoothing, hysteresis, schedule boundaries, any/all; three-state handling of unavailable readings | Ported Keepresso tests plus new three-state tests |
 | Observations | Readers report unavailable instead of a default value; SSH pre-auth connections are not sessions | Fixture tests plus read-only smoke runs on a real Mac |
 | Power control | Multiple owners, exact prior values, failed operations/readback and restore debt | Fake backend traces plus bounded installed checks |
@@ -95,3 +95,8 @@ added yet, and the current SSH rule does not cover this requirement.
 Module boundaries are enforced by SwiftPM target dependencies: an import a
 target does not declare fails to compile. The archived
 `tools/architecture/check_boundaries.py` probe is not carried forward.
+
+Before B1, Claude Code and jbrest review experiment identities, installation,
+cleanup and recovery. Existing services are untouched; no global BTM reset.
+For upstream fix confirmation, use separate worktrees. If authenticated SSH
+cannot be detected reliably, report unsupported instead of a broad heuristic.
