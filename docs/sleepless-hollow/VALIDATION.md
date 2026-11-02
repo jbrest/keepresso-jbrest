@@ -42,6 +42,7 @@ Stages A to D (shared modules, Keepresso wrappers and SH):
 | Settings | Existing saved rules, import/export, malformed inputs and raw values decode identically through the wrappers | Fixtures captured from rev U before each move |
 | Two-state adapter | Each condition's missing-reading behavior matches the O11 table | One test per row |
 | Provenance | Every seeded or ported unit listed in SOURCE-INVENTORY.md with source and revision | Inventory plus the provenance check after each rebase |
+| Upstream code review (I7) | Every moved, wrapped or seeded upstream file reviewed; each finding recorded, and confirmed or rejected by a test against `upstream/main` | "Reviewed" column in SOURCE-INVENTORY.md; candidate table in NOTES.md; `upstream-fix/` branches |
 | Module boundaries | Each target builds with only its declared dependencies | `swift build` per target |
 | Conditions | Ported semantics match Keepresso: matching, smoothing, hysteresis, schedule boundaries, any/all; three-state handling of unavailable readings | Ported Keepresso tests plus new three-state tests |
 | Observations | Readers report unavailable instead of a default value; SSH pre-auth connections are not sessions | Fixture tests plus read-only smoke runs on a real Mac |

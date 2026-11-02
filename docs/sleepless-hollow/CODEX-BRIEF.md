@@ -65,6 +65,17 @@ transaction, and evidence-based acceptance. These parts are different:
    current as you go.
 5. Stop at each review checkpoint listed in NOTES.md, and tell jbrest that a
    Claude Code review is due before continuing.
+6. Review every upstream file you move, wrap or seed from for correctness bugs,
+   following "Reviewing touched upstream code" in MIGRATION-PLAN.md.
+   - Never fix a suspected upstream bug inside a move. Preserve the behavior
+     and record it in the "Upstream fix candidates" table in NOTES.md.
+   - Confirm each one with a failing test on a separate `upstream-fix/` branch
+     from `upstream/main`.
+   - jbrest decides which fixes are offered upstream, as small standalone PRs
+     submitted as a goodwill gesture before any reorganization offer.
+   - Low-value findings are recorded but not proposed.
+   - In your review of these docs, say whether this procedure is workable and
+     what you would change.
 
 ## Working rules
 

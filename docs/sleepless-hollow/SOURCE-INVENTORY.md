@@ -91,8 +91,8 @@ Each one gets a regression test in the stage named.
 | F6 | No thermal or battery safety in the service | Per O8 | C |
 
 Upstream note: the upstream SSH preset uses the same process-name match
-(`Preset.swift` ~L68), so F4 may also affect Keepresso. If A2 confirms it, that
-fix is a candidate small upstream PR for Stage F. The peer-policy and
+(`Preset.swift` ~L68), so F4 may also affect Keepresso. It is tracked as
+upstream candidate U1 in NOTES.md. The peer-policy and
 `getgrouplist` defects were introduced in fork-only code and do not exist
 upstream.
 
@@ -123,6 +123,6 @@ edited. That includes:
 
 ## Done (fill in as work lands)
 
-| Unit | Source | Rev | Moved, seeded or ported | Commit |
-| --- | --- | --- | --- | --- |
-| | | | | |
+| Unit | Source | Rev | Moved, seeded or ported | Reviewed (I7): date, candidate IDs or "none" | Commit |
+| --- | --- | --- | --- | --- | --- |
+| | | | | | |

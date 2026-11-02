@@ -15,6 +15,8 @@ Stage 0: archive and baseline. Waiting on the Codex review.
   `archive/headless-in-keepresso-2026-11-02`.
 - 2026-11-02: Created `sh/foundation` from `upstream/main` `7ea73a6`.
 - 2026-11-02: Wrote the planning set in `docs/sleepless-hollow/`.
+- 2026-11-02: Added the upstream code review rule (I7) and the candidate
+  table below.
 - 2026-11-02: Revised the plan per decision P7. The Keepresso adapter is built
   while modularizing the rules and observations, one condition at a time.
   Keepresso's helper is left alone until Stage E.
@@ -39,6 +41,15 @@ Stop and ask jbrest for a Claude Code review at each of these points:
 5. Before any installed test in Stage D.
 6. Any time an invariant in MIGRATION-PLAN.md would have to be broken, or an
    approach has failed twice.
+
+## Upstream fix candidates
+
+Per "Reviewing touched upstream code" in MIGRATION-PLAN.md. Nothing here is
+fixed on `sh/foundation`. Submission needs jbrest's approval.
+
+| ID | File:line (rev) | Problem and user effect | Severity | Status | Test / branch |
+| --- | --- | --- | --- | --- | --- |
+| U1 | `Sources/KeepressoCore/Preset.swift`:68 (`7ea73a6`) | The "Remote Session (SSH)" preset matches any process containing `sshd:` or `sshd-session`. That may include connections that have not logged in yet, so a scanner probing port 22 could keep the Mac awake while the login grace period runs. macOS launches sshd per connection, so the actual pre-auth process names need checking. | low (if real) | suspected | Check in Stage A step 7 |
 
 ## Baseline
 

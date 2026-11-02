@@ -67,6 +67,61 @@ targets arrive transitively and `project.yml` does not change.
 - **I6. Nothing leaves the machine without approval.** Pushing to `origin` (a
   public fork) and any contact with upstream each need jbrest's explicit
   approval.
+- **I7. Review all upstream code touched.** See the next section.
+
+## Reviewing touched upstream code
+
+Every upstream file that is moved, wrapped or seeded from gets a correctness
+review before or during its move. So does any upstream code read closely to
+understand one of those files. The aim is to find real Keepresso bugs that can
+be offered back as standalone fixes.
+
+**Scope.**
+- Stage A: every file listed as moved in SOURCE-INVENTORY.md.
+- Stages B and C: every helper file listed as seeded.
+- Any other upstream file whose behavior a move depends on.
+
+**What to check.**
+- Logic and boundary cases.
+- Handling of missing, stale or malformed readings.
+- Error paths that are swallowed or turned into defaults.
+- Units and conversions.
+- Time, calendar and DST handling.
+- Concurrency and actor isolation.
+- Resource leaks: processes, file handles, IOKit objects, assertions.
+- Behavior that contradicts the code's own comments or docs.
+- For helper code also: privilege boundaries, caller validation, failing closed,
+  and restore on crash or update.
+
+Style preferences and refactoring opportunities are not findings.
+
+**Rules.**
+1. **Do not fix in place.** A move preserves current behavior exactly (I3),
+   including suspected bugs. Record the suspicion instead.
+2. **Record every finding** in the "Upstream fix candidates" table in NOTES.md,
+   with:
+   - an ID (U1, U2 and so on);
+   - file and line at a stated revision;
+   - what is wrong and its effect on users;
+   - severity (high, medium, low);
+   - status (suspected, confirmed, rejected or submitted).
+3. **Confirm with a test.** On a separate branch `upstream-fix/<short-name>`,
+   created from `upstream/main`, write a test that fails on upstream code. Then
+   write the smallest fix that makes it pass without breaking the full suite. A
+   finding with no failing test stays "suspected". A finding the test disproves
+   is marked "rejected", with the reason.
+4. **Keep fixes off `sh/foundation`.** They reach this branch only through
+   upstream, by rebasing after gyorgysh merges them. If SH needs the corrected
+   behavior sooner, SH-only code can implement it. Changing shared behavior that
+   Keepresso uses needs a DECISIONS.md entry approved by jbrest.
+5. **Submit selectively.** Only confirmed findings of medium severity or higher,
+   or low-severity ones that are trivially safe, are proposed to jbrest for
+   submission. Each fix:
+   - is its own small PR, with its test;
+   - follows the repo's CLAUDE.md and the conventions of recently merged PRs;
+   - is submitted only with jbrest's approval (I6).
+6. **Mark the review done.** Record the review of each file in the "Reviewed"
+   column of SOURCE-INVENTORY.md's "Done" table, even when nothing was found.
 
 ## Stages
 
@@ -189,9 +244,10 @@ Exit:
 
 ### Stage F (separate approval): upstream offer
 
-1. Offer any fixes that apply to upstream code as separate small PRs first. F4
-   (the SSH pre-auth match in the upstream preset) is the likely first one, if
-   A2 confirms it.
+1. Offer confirmed upstream fix candidates (see "Reviewing touched upstream
+   code") as separate small PRs first. These can go as soon as each is confirmed
+   and jbrest approves; they don't need to wait for Stage F. U1 (the SSH preset
+   pre-auth match) is the first to check, during Stage A step 7.
 2. Then open one issue linking a branch with Stage A (and E, if done), rebased
    on current `upstream/main`. It contains no SH code, no SH docs and no
    fork-only changes. Cover five points:
