@@ -227,6 +227,39 @@ Each task is its own commit. Show jbrest a short plan before task 1, per
 4. **Stop.** Update NOTES.md and tell jbrest that the Claude Code checkpoint
    before A2 (power source) is due. Do not start A2.
 
+## Claude Code review of A1 (2 November 2026)
+
+A1 is accepted. The `SignalObservation` rename is right. Before A2:
+
+1. **Re-run the app build.** `/tmp/sh-a1-app-build.log` is empty (0 bytes), so
+   there is no evidence that the app target, with its 28 `@Observable` files,
+   builds after the re-export was added. Re-run the unsigned Debug app build and
+   keep the result.
+2. **Keep evidence durable.** `/tmp` is cleared on reboot. For each step, save a
+   short summary to `docs/sleepless-hollow/evidence/<step>.md`: the commands,
+   pass counts, the identity-check output and the build result. Full logs stay
+   out of the repo.
+3. **Add the import check to every step's exit checklist** in
+   MIGRATION-PLAN.md, alongside the identity check and the I1 diff.
+4. **Remove the `RuleModel`, `RuleEvaluation` and `SystemObservations` library
+   products** from `Package.swift`. Targets in the same package don't need them,
+   so they only add public surface. Add products back if something outside the
+   package ever needs them.
+
+For the A2 checkpoint, with no separate commit needed before then:
+
+5. **Rename the shared `Verdict`** to `RuleVerdict`. Keepresso already has three
+   nested `Verdict` types (`FanDryRun`, `AutomationLease`,
+   `AutomationWakeControl`). They don't clash today, but four meanings of one
+   name invite mistakes.
+6. **Naming rule, to add to ARCHITECTURE.md:**
+   - A shared type never reuses the name of an Apple module or of a type that
+     stays in `KeepressoCore`.
+   - A type that moves exists in exactly one place: reachable through the
+     re-export, or through an alias, never both.
+   - Never rename Keepresso's own types or members to make room. Shared code
+     adapts to Keepresso's names, not the other way round.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
