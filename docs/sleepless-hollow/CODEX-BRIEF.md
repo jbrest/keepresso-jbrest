@@ -441,6 +441,33 @@ authenticated sessions (F4, current plan), or any incoming SSH connection?
 Sitting 1, including the dirty-disconnect step 1.8, provides the evidence.
 Record O16 in DECISIONS.md and settle it after sitting 1.
 
+**Update, 3 November 2026: Claude Code has done hands-on tasks 1 and 2 for
+sittings 0 to 2.** jbrest asked for a runnable script with timers. Do not
+rebuild these; review them and raise problems instead:
+- `tools/hands-on/record.py`: continuous recorder (5-second samples, up to 4
+  hours). It reuses the probe's `capture()` and adds a `pmset -g assertions`
+  summary (owner process, assertion type, and the "Created for" process only).
+  `--status` gives a live summary that leaves out its own SSH connection.
+- `tools/hands-on/hands-on.sh`: Studio-side start, status, stop and check.
+  `start LABEL keep-awake` wraps the recorder in a labeled `caffeinate -i`,
+  used only in sitting 1 so the 1.8 linger can be watched for hours.
+- `tools/hands-on/laptop-runner.zsh`: runs on the laptop and drives every step
+  with timers. Marks are logged on the laptop, never over SSH during a step,
+  and copied to `~/sh-handson-captures/` at the end. There is no control
+  channel: the recorder runs in a detached tmux server.
+- [HANDS-ON-RUNBOOK.md](HANDS-ON-RUNBOOK.md): what jbrest pastes and does.
+
+Facts found while writing them:
+- The coreaudiod idle-sleep block is "Created for" `avconferenced`. It started
+  together with the Screen Sharing connection, so it is probably Screen
+  Sharing audio. Step 2.1 confirms it.
+- `~/.ssh/rc` on the Studio runs `caffeinate -u -t 1` on every SSH login, so
+  each login declares user activity. B1 and any idle-timer evidence must allow
+  for that.
+
+Tasks 3 to 5 in HANDS-ON-PLAN.md (FileVault over SSH, B1 design, stop for
+review) are still yours. Sittings 3 and 4 are not in the runner on purpose.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
