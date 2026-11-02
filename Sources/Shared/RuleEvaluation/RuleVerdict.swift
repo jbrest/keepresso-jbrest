@@ -2,15 +2,15 @@ import RuleModel
 
 /// A condition result. Products decide how unknown affects their own demand;
 /// combining results never silently turns missing information into false.
-public enum Verdict: CaseIterable, Equatable, Sendable {
+public enum RuleVerdict: CaseIterable, Equatable, Sendable {
     case satisfied
     case unsatisfied
     case unknown
 
     /// Kleene OR. Empty input is unsatisfied, matching Keepresso's empty rules.
-    public static func any<Results: Sequence>(_ results: Results) -> Verdict
-    where Results.Element == Verdict {
-        var combined = Verdict.unsatisfied
+    public static func any<Results: Sequence>(_ results: Results) -> RuleVerdict
+    where Results.Element == RuleVerdict {
+        var combined = RuleVerdict.unsatisfied
         for result in results {
             switch result {
             case .satisfied: return .satisfied
@@ -23,10 +23,10 @@ public enum Verdict: CaseIterable, Equatable, Sendable {
 
     /// Kleene AND, with an explicit empty-input exception for keep-awake rules:
     /// enabling a rule set with no conditions must not itself request a hold.
-    public static func all<Results: Sequence>(_ results: Results) -> Verdict
-    where Results.Element == Verdict {
+    public static func all<Results: Sequence>(_ results: Results) -> RuleVerdict
+    where Results.Element == RuleVerdict {
         var hasResult = false
-        var combined = Verdict.satisfied
+        var combined = RuleVerdict.satisfied
         for result in results {
             hasResult = true
             switch result {

@@ -2,10 +2,10 @@ import Testing
 import RuleEvaluation
 
 private struct CombinationCase: Sendable {
-    let left: Verdict
-    let right: Verdict
-    let any: Verdict
-    let all: Verdict
+    let left: RuleVerdict
+    let right: RuleVerdict
+    let any: RuleVerdict
+    let all: RuleVerdict
 }
 
 private let truthTable: [CombinationCase] = [
@@ -22,29 +22,29 @@ private let truthTable: [CombinationCase] = [
 
 @Test func combinationsFollowTheCompleteThreeStateTruthTable() {
     for entry in truthTable {
-        #expect(Verdict.any([entry.left, entry.right]) == entry.any)
-        #expect(Verdict.all([entry.left, entry.right]) == entry.all)
+        #expect(RuleVerdict.any([entry.left, entry.right]) == entry.any)
+        #expect(RuleVerdict.all([entry.left, entry.right]) == entry.all)
     }
 }
 
 @Test func emptyRuleSetsNeverRequestAHold() {
-    #expect(Verdict.any([]) == .unsatisfied)
-    #expect(Verdict.all([]) == .unsatisfied)
+    #expect(RuleVerdict.any([]) == .unsatisfied)
+    #expect(RuleVerdict.all([]) == .unsatisfied)
 }
 
 @Test func aSingleUnknownRemainsUnknown() {
-    #expect(Verdict.any([.unknown]) == .unknown)
-    #expect(Verdict.all([.unknown]) == .unknown)
+    #expect(RuleVerdict.any([.unknown]) == .unknown)
+    #expect(RuleVerdict.all([.unknown]) == .unknown)
 }
 
 @Test func knownResultsDominateUnknownRegardlessOfPosition() {
-    #expect(Verdict.any([.unknown, .unsatisfied, .satisfied]) == .satisfied)
-    #expect(Verdict.any([.satisfied, .unknown, .unsatisfied]) == .satisfied)
-    #expect(Verdict.all([.unknown, .satisfied, .unsatisfied]) == .unsatisfied)
-    #expect(Verdict.all([.unsatisfied, .unknown, .satisfied]) == .unsatisfied)
+    #expect(RuleVerdict.any([.unknown, .unsatisfied, .satisfied]) == .satisfied)
+    #expect(RuleVerdict.any([.satisfied, .unknown, .unsatisfied]) == .satisfied)
+    #expect(RuleVerdict.all([.unknown, .satisfied, .unsatisfied]) == .unsatisfied)
+    #expect(RuleVerdict.all([.unsatisfied, .unknown, .satisfied]) == .unsatisfied)
 }
 
 @Test func unknownIsPreservedWhenNoKnownResultDecidesTheCombination() {
-    #expect(Verdict.any([.unsatisfied, .unknown, .unsatisfied]) == .unknown)
-    #expect(Verdict.all([.satisfied, .unknown, .satisfied]) == .unknown)
+    #expect(RuleVerdict.any([.unsatisfied, .unknown, .unsatisfied]) == .unknown)
+    #expect(RuleVerdict.all([.satisfied, .unknown, .satisfied]) == .unknown)
 }

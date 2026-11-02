@@ -127,7 +127,8 @@ edited. That includes:
 
 | Unit | Source | Rev | Moved, seeded or ported | Reviewed (I7): date, candidate IDs or "none" | Commit |
 | --- | --- | --- | --- | --- | --- |
-| A1 scaffolding | New shared types/targets; Package.swift compatibility exports | sh/foundation | new; no upstream condition moved | 2026-11-02: Package.swift reviewed; no new candidate | See A1 commit |
+| A1 scaffolding | New shared types/targets; Package.swift compatibility exports | sh/foundation | new; no upstream condition moved | 2026-11-02: Package.swift reviewed; no new candidate | a6f05dd; review fixes b50e79f |
+| A2 power | PowerSource.swift; Trigger.swift power wrapper (entire files reviewed) | U 7ea73a6 | snapshot moved to RuleModel by re-export only; IOKit acquisition adapted to SystemObservations; matching adapted to RuleEvaluation; Keepresso compatibility wrappers retained | 2026-11-02: no new upstream bug candidate; model/reader/evaluator provenance comments cite U | See A2 commit |
 
 ## Compatibility state per moved condition
 
@@ -138,4 +139,19 @@ move; it is the scope for any later, separately agreed behavior improvement.
 
 | Condition | Compatibility-only or mixed state | Upstream source | Later change that could remove it |
 | --- | --- | --- | --- |
-| None moved yet | | | |
+| Power source (A2) | No retained mutable compatibility state. Legacy fallback snapshot and unknown-to-Bool policy stay in Keepresso wrappers; immutable reader ownership is operational. | U PowerSource.swift:57-59; Trigger.swift:88-94 | A future explicit-unavailability interface could remove the fallback/coercion, not the acquisition backend. |
+
+### A2 ownership and wire notes
+
+- PowerSourceSnapshot has one definition, in RuleModel, reachable through the
+  existing re-export. No Keepresso alias duplicates it. Its existing nested
+  Provider cases/Codable conformance are retained for source compatibility.
+- PowerSourceTrigger.Match remains product-owned Codable, with its original
+  raw values, labels and public cases. It maps explicitly to the non-Codable
+  shared PowerSourceCondition; no wire-format migration occurs.
+- Shared acquisition reports a missing blob as unavailable. A valid blob with
+  unknown provider retains any independent charging/battery fields; the shared
+  evaluator treats provider-based conditions as unknown but can evaluate
+  charging. Keepresso's whole-read failure fallback remains unchanged.
+- New compatibility cases live outside Tests/KeepressoCoreTests. All original
+  tests and identities remain unchanged. No unrelated Trigger.swift logic moved.

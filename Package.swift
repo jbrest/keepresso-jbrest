@@ -64,6 +64,16 @@ let package = Package(
             path: "Tests/Shared/RuleEvaluationTests"
         ),
         .testTarget(
+            name: "SystemObservationsTests",
+            dependencies: ["SystemObservations"],
+            path: "Tests/Shared/SystemObservationsTests"
+        ),
+        .testTarget(
+            name: "PowerSourceCompatibilityTests",
+            dependencies: ["KeepressoCore", "SystemObservations"],
+            path: "Tests/Compatibility/PowerSourceCompatibilityTests"
+        ),
+        .testTarget(
             name: "KeepressoCoreTests",
             dependencies: ["KeepressoCore"],
             path: "Tests/KeepressoCoreTests"

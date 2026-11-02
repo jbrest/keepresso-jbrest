@@ -86,11 +86,16 @@ public final class PowerSourceTrigger: Trigger {
 
     /// Pure decision function, exposed for direct unit testing.
     static func evaluate(_ match: Match, against snapshot: PowerSourceSnapshot) -> Bool {
+        let condition: PowerSourceCondition
         switch match {
-        case .onACPower: return snapshot.provider == .ac
-        case .onBattery: return snapshot.provider == .battery
-        case .charging:  return snapshot.isCharging
+        case .onACPower: condition = .onACPower
+        case .onBattery: condition = .onBattery
+        case .charging: condition = .charging
         }
+        let verdict = PowerSourceEvaluation.evaluate(condition, snapshot: snapshot)
+        // Compatibility only: U Trigger.swift:88-94 maps unknown provider to
+        // false for AC/battery; charging still uses its independent Bool.
+        return verdict == .satisfied
     }
 }
 

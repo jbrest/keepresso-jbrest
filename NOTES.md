@@ -6,10 +6,22 @@ Update it after each milestone.
 
 ## Current stage
 
-A1 accepted after Claude Code review. Items 1-4 applied with durable evidence;
-A2 power-source move is authorized, including the RuleVerdict rename/naming rule.
+A2 complete and stopped for Claude Code review. A1 review items 1-6 are applied;
+A3 time-window work has not started.
 
 ## Done
+
+- 2026-11-02: A2 power-source extraction complete with original Keepresso names,
+  injected monitor seam and Match Codable/raw values intact. Shared snapshot has
+  one definition, exposed by re-export; shared reader/evaluator report explicit
+  availability. O11 and source review/provenance tables updated; no new confirmed
+  upstream defect. RuleVerdict rename and the naming rule are in this step.
+- A2 validation: 1,188 main tests plus 8 separate XPC tests passed (1,196 total).
+  All 1,177 baseline identities retained, with 19 additions since baseline.
+  Package and unsigned app/widget/helper/CLI/MCP builds passed. The seven-file
+  import check passed, protected I1 diff is empty, original Core tests unchanged.
+  Real power-reader smoke: available, provider ac, charging false, battery false.
+  Durable evidence: docs/sleepless-hollow/evidence/A2.md.
 
 - 2026-11-02: Applied Claude's A1 review items 1-4. Removed unnecessary shared
   library products; targets remain. Re-ran the non-quiet unsigned app build:
@@ -46,11 +58,10 @@ A2 power-source move is authorized, including the RuleVerdict rename/naming rule
 
 ## Next
 
-1. Claude Code reviews A1: new target graph, compatibility exports,
-   SignalObservation/Verdict API, shared tests and the two check scripts.
-2. jbrest settles that checkpoint before A2 starts.
-3. A2 power source establishes the first real condition wrapper and O11 row;
-   stop for review again after A2. O11 remains unfilled until the move.
+1. Claude Code reviews the A2 power-source pattern, RuleVerdict rename and
+   naming rule, O11 behavior row, provenance and evidence/A2.md.
+2. jbrest settles that checkpoint before A3 begins. No further condition moves
+   until that review is complete.
 
 ## Review checkpoints (Claude Code)
 

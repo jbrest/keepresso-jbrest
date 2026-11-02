@@ -36,12 +36,21 @@ PowerControl and ServiceSupport later (Stage E).
    Trusted paths, service names and code-signing requirements come from the
    host's own configuration, never from a caller.
 
+### Naming (A1 review, adopted with A2)
+
+- Shared types do not reuse the name of an Apple module or a type that remains
+  in KeepressoCore. The shared condition verdict is named `RuleVerdict`.
+- A moved type has one definition, exposed through a re-export or an alias,
+  never both. A2 moves PowerSourceSnapshot and exposes it by re-export only.
+- Do not rename Keepresso's own types or members to make room. Shared names
+  adapt to the existing Keepresso surface.
+
 ## Modules
 
 | Module | Kind | Purpose | Project dependencies | Frameworks |
 | --- | --- | --- | --- | --- |
 | RuleModel | Shared library | Condition values, sample values, `SignalObservation`, `CombineMode` | None | Foundation |
-| RuleEvaluation | Shared library | Pure evaluators, `Verdict`, smoothing state machines, three-state combine | RuleModel | Foundation |
+| RuleEvaluation | Shared library | Pure evaluators, `RuleVerdict`, smoothing state machines, three-state combine | RuleModel | Foundation |
 | SystemObservations | Shared library | Readers that acquire samples; no decisions | RuleModel | Foundation, IOKit, Darwin, SystemConfiguration |
 | PowerControl | Shared library | Keep-awake holds only: owners, mechanisms, restore journal, verification | None | Foundation, IOKit, Darwin |
 | ServiceSupport | Shared library | Helper registration status, XPC peer validation, admin authorization, handshake, structured errors, diagnostics log | None | Foundation, Security, ServiceManagement, Darwin |
@@ -120,7 +129,7 @@ modules arrive transitively.
 
 ### RuleEvaluation
 
-- `Verdict`: `satisfied`, `unsatisfied`, `unknown`.
+- `RuleVerdict`: `satisfied`, `unsatisfied`, `unknown`.
 - One evaluator per condition type, pure and synchronous.
 - CPU and throughput state machines with Keepresso's smoothing weight,
   hysteresis and release fraction. Missing samples do not change the average;
