@@ -319,6 +319,45 @@ CPU pattern. Small items to fold into A5:
    acquisition shared with agent monitoring. Stop after A6 for a Claude Code
    review before A7. NOTES.md lists it.
 
+## Claude Code review of A5 and A6 (2 November 2026)
+
+Both accepted, and the A4 corrections are applied correctly.
+
+- **A5:** identical to upstream. The only difference is an extra clock read on
+  a failed read, which is harmless. The byte-counter subtraction is guarded, so
+  there is no U2 equivalent.
+- **A6:** I traced the retention split for a timing difference. The original
+  kept the last good list inside the lister. Now the observer publishes
+  "unavailable" and the adapter keeps the last good list, but only when
+  `current` is read. That stays equivalent because a refresh starts only from a
+  call, and each result is read by the next call before another refresh can
+  replace it. The S4 comment is in the right place, and `SharedPSSnapshot`
+  retry behavior is unchanged.
+
+Two small items, in A7's first commit:
+
+1. **Document the A6 invariant.** The equivalence holds only while each
+   `AsyncPSCommandObserver` has a single consumer. A second consumer could
+   consume a successful result, and the lister would then miss it after a later
+   failure. Say so in a comment on `PSProcessLister`'s observer, and in the
+   shared observer's doc comment.
+2. **Possible improvement entry** (NOTES.md, not a bug). The per-interface
+   `if_data` byte counters are 32-bit, so a wrap drops one sample. That takes
+   about 34 seconds per direction at 1 Gbit/s, and a few seconds at 10 Gbit/s,
+   so fast links lose samples often. The smoothing hides it, so detection still
+   works. 64-bit counters (`if_data64` through `sysctl`) would remove it.
+   Record it only; no change.
+
+Then proceed with A7 (SSH and console session). It is SH-only new code, so the
+upstream code review and U1 investigation matter more than compatibility here:
+
+- Keep the experiments read-only and bounded.
+- Ask jbrest before any step that needs a real SSH login, a second user,
+  locking, Screen Sharing or logging out.
+- Never log out or lock the session you are running in.
+- Stop at the end of Stage A for a Claude Code review. A8 is skipped unless O8
+  is settled.
+
 ## Working rules
 
 The repo's `.clinerules` and `CLAUDE.md` apply:
