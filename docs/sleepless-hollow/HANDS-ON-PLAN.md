@@ -16,6 +16,9 @@ Read-only checks on 2 November 2026 found:
 | **FileVault is on**; `fdesetup authrestart` is supported | A normal reboot stops at the FileVault unlock screen, which cannot be reached remotely. Use `authrestart` for reboots. |
 | **Remote Login is on**, inetd-style: no `sshd` process exists until a connection arrives | There is no idle listener process at all. Every `sshd`-family process belongs to a live connection. |
 | **Screen Sharing holds a "Remote user is connected" sleep block** while connected | Every power and sleep observation must be made with Screen Sharing *disconnected*, watched over SSH. |
+| The archived test build is still running: `KeepressoHeadlessTest.app` (pid 58402) and its root `keepresso-helper` (pid 58489), up about 9.5 hours. `SleepDisabled` is 0. | It is a second keep-awake actor, and it may enforce a saved Headless policy. Remove it before sitting 1 (step 0.4), or every capture is ambiguous. |
+| `coreaudiod` holds an audio-tap idle-sleep block. Its source is unknown, possibly Screen Sharing audio. | Record whether it disappears when Screen Sharing disconnects. If it stays, find its owner before sitting 4. |
+| Keepresso, like any app, runs inside a GUI login | Disconnecting Screen Sharing leaves the login and its apps running, and removes Screen Sharing's sleep block. Logging out ends the apps. |
 | One user account (`jeremybrest`) | A disposable second account is needed for the switching and second-session cases. |
 
 **No monitor is needed.** Keep a USB keyboard within reach for sitting 3 only.
@@ -51,6 +54,12 @@ into a user picker.
 3. Confirm the laptop can open Screen Sharing to the Studio as `shtest` (Finder
    > Network, or `vnc://Jeremys-Mac-Studio.local`). Choosing "log in as
    yourself" gives `shtest` its own virtual session. Cancel without logging in.
+4. Remove the archived test build. Codex runs the archived cleaner
+   (`tools/clean-headless-test-state.sh` at tag
+   `archive/headless-in-keepresso-2026-11-02`) in inspection mode first and
+   shows jbrest what it would remove. Only with jbrest's approval does it
+   unregister the helper and quit the app. Before removal, read its saved
+   policy and confirm `SleepDisabled` stays 0 afterwards.
 
 ## Sitting 1: SSH channel (about 25 minutes; Claude and Codex keep running)
 
