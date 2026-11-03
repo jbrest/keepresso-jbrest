@@ -464,6 +464,17 @@ Facts found while writing them:
 - `~/.ssh/rc` on the Studio runs `caffeinate -u -t 1` on every SSH login, so
   each login declares user activity. B1 and any idle-timer evidence must allow
   for that.
+- First sitting 1 run (3 November, 07:42 to 07:59 local) is void for 1.4,
+  1.6 and 1.8: the runner backgrounded a shell function, so `kill` hit the
+  subshell and the `ssh` clients stayed alive. Fixed in de41b68; sitting 1 is
+  being rerun. 1.2, 1.3, 1.5 and 1.7 looked as expected. 1.1 showed no `sshd`
+  at all, because `nc` quit at end of input; also fixed.
+- **Probe defect, yours to fix:** on macOS 26.5 `sshd-session` titles carry
+  trailing spaces (`sshd-session: USER  ` and `sshd-session: USER@ttys005`
+  padded). `title_shape()` does not strip them, so every authenticated
+  session classifies as "unrecognized". Strip before matching, add a test
+  with padded titles, and record this as evidence for O16: title parsing is
+  fragile even on the first real machine.
 
 Tasks 3 to 5 in HANDS-ON-PLAN.md (FileVault over SSH, B1 design, stop for
 review) are still yours. Sittings 3 and 4 are not in the runner on purpose.
