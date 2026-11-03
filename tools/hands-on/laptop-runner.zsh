@@ -82,7 +82,7 @@ find_wifi() {
 finish() {
     mark "$1" "sitting finished"
     if scp -q -o ControlMaster=no -o ControlPath=none -o BatchMode=yes \
-        "$marks" "$STUDIO:sh-handson-captures/"; then
+        "$marks" "${STUDIO}:sh-handson-captures/"; then
         say "Done. Marks copied to the Studio (~/sh-handson-captures/)."
     else
         say "Done, but copying the marks failed. They are in $marks"
@@ -115,6 +115,11 @@ sitting1() {
     say "Sitting 1: SSH channel (about 35 minutes of steps, then the recorder keeps going)"
     note "Stay connected to the Studio by Screen Sharing if you like; it doesn't affect this."
     note "Don't open any other SSH, sftp or VS Code Remote connection to the Studio until the end."
+    if pgrep -f "ssh .*$STUDIO_HOST" > /dev/null; then
+        note "This laptop still has SSH connections open to the Studio. Close them first:"
+        note "  pkill -f 'ssh .*$STUDIO_HOST'"
+        exit 1
+    fi
     wait_return "Ready?"
     mark 1.start "starting the recorder (one short SSH connection)"
     studio "sh $REMOTE start sitting1 keep-awake" || { note "Could not start the recorder."; exit 1; }
@@ -124,7 +129,8 @@ sitting1() {
     countdown 60 "baseline"
 
     mark 1.1 "nc to port 22 opened (never authenticates)"
-    nc "$STUDIO_HOST" 22 > /dev/null &
+    # nc quits at end of input, so feed it a pipe that stays open.
+    sleep $(( HOLD + 10 )) | nc "$STUDIO_HOST" 22 > /dev/null &
     local pid=$!
     countdown $HOLD "holding"
     kill $pid 2>/dev/null; wait $pid 2>/dev/null
@@ -152,7 +158,7 @@ sitting1() {
     countdown $HOLD "settling"
 
     mark 1.4 "ssh -N (authenticated, no shell)"
-    studio -N &
+    ssh "${SSH_OPTS[@]}" -N "$STUDIO" &
     pid=$!
     countdown $HOLD "holding"
     kill $pid 2>/dev/null; wait $pid 2>/dev/null
@@ -165,9 +171,9 @@ sitting1() {
     countdown $HOLD "settling"
 
     mark 1.6 "two terminal sessions opened"
-    studio -tt 'sleep 600' < /dev/null > /dev/null 2>&1 &
+    ssh "${SSH_OPTS[@]}" -tt "$STUDIO" 'sleep 600' < /dev/null > /dev/null 2>&1 &
     local first=$!
-    studio -tt 'sleep 600' < /dev/null > /dev/null 2>&1 &
+    ssh "${SSH_OPTS[@]}" -tt "$STUDIO" 'sleep 600' < /dev/null > /dev/null 2>&1 &
     local second=$!
     countdown $HOLD "holding both"
     kill $first 2>/dev/null; wait $first 2>/dev/null
@@ -188,7 +194,7 @@ sitting1() {
     find_wifi
     local route_if=$(route -n get "$STUDIO_HOST" 2>/dev/null | awk '/interface:/{print $2}')
     mark 1.8 "long session opened (remote sleep 3h stands in for an idle shell)"
-    studio -tt 'sleep 10800' < /dev/null > /dev/null 2>&1 &
+    ssh "${SSH_OPTS[@]}" -tt "$STUDIO" 'sleep 10800' < /dev/null > /dev/null 2>&1 &
     pid=$!
     countdown $HOLD "holding"
     if [[ -n $wifi_dev && $route_if == "$wifi_dev" ]]; then
