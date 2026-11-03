@@ -1,0 +1,113 @@
+HANDS-ON TESTS: SITTING 2 (SCREEN SHARING AND LOGINS)
+=====================================================
+
+START: any time after 11:20 on Tuesday 3 November, or any later day.
+TAKES: about 40 minutes. You need to be at the laptop the whole time.
+OFFLINE: never. The laptop stays online throughout this sitting.
+
+Two machines are involved:
+  STUDIO = the Mac Studio. You see it through the Screen Sharing app.
+  LAPTOP = your MacBook. This is where you type the commands.
+
+How commands are shown in this file:
+  Every command sits alone on a line between two lines of dashes. Copy only
+  the line between the dashes, paste it into Terminal ON THE LAPTOP, and
+  press Return. Never paste a command into the Studio.
+
+
+STEP 1. GET THE LATEST SCRIPT (on the laptop)
+---------------------------------------------
+
+The script changed since sitting 1, so fetch it again. In the laptop's
+Terminal, paste:
+
+  ----------------------------------------
+  scp jeremybrest@Jeremys-Mac-Studio.local:dev/keepresso-jbrest/tools/hands-on/laptop-runner.zsh ~/ && zsh ~/laptop-runner.zsh preflight
+  ----------------------------------------
+
+Expected result: the last line says  Preflight passed.
+If any line says FAILED, stop and tell Claude what it printed.
+
+There are no other files to download.
+
+
+STEP 2. GET READY
+-----------------
+
+  - Plug the laptop into power.
+  - Connect Screen Sharing to the Studio, logged in as yourself.
+  - Have the SH Test (shtest) password ready.
+  - Arrange the laptop screen so you can see both the Terminal window and
+    the Screen Sharing window.
+  - On the Studio, leave VS Code, Claude and Codex open. Don't ask them to do
+    anything until this sitting is finished.
+
+
+STEP 3. RUN SITTING 2 (on the laptop)
+-------------------------------------
+
+Paste:
+
+  ----------------------------------------
+  zsh ~/laptop-runner.zsh 2
+  ----------------------------------------
+
+How it works:
+  - The script prints a countdown whenever you should just wait.
+  - When it prints a yellow line starting with  >>  it wants you to do
+    something. Do it in the Screen Sharing window, then click back into the
+    laptop's Terminal and press Return.
+  - To stop early, press Ctrl-C in the laptop's Terminal.
+
+What it will ask you to do, in order, so nothing is a surprise:
+
+  2.0  Nothing. A 1-minute baseline.
+
+  2.1  Quit Screen Sharing on the laptop (click its window, press Cmd-Q).
+       Wait 2 minutes (countdown). Then reconnect as yourself.
+
+  2.2  In the Studio window, press Ctrl-Cmd-Q to lock the screen.
+       Then quit Screen Sharing (Cmd-Q). Wait 2 minutes (countdown).
+       Then reconnect and unlock with your password.
+
+  2.3  In the Studio window, click the person icon at the top right and
+       choose Login Window. Wait 1 minute (countdown). Then log back in as
+       yourself.
+
+  2.4  Person icon (top right) > SH Test. Type the shtest password. The first
+       time, macOS shows setup screens: click through them (skip or "Set Up
+       Later" wherever offered) until you see the SH Test desktop. Wait 30
+       seconds. Then person icon > your name, and type your password.
+
+  2.5  Person icon > SH Test again, then Apple menu > Log Out SH Test.
+       At the login window, click your name and log in.
+
+  2.6  On the laptop, open a SECOND Screen Sharing connection: in the
+       Screen Sharing app choose Connect (or File > New), enter
+       Jeremys-Mac-Studio.local, and sign in as shtest. If it offers
+       "Log in as yourself", choose it. Stop when you see the SH Test desktop
+       in the new window. Your own window stays open.
+
+  2.7  Close only the SH Test window (click it, press Cmd-W). Don't log out.
+       Wait 2 minutes (countdown).
+
+  2.8  Connect as shtest again (same as 2.6), then in that window choose
+       Apple menu > Log Out SH Test.
+
+  2.9  In your own Studio window: System Settings > Users & Groups, click the
+       (i) next to SH Test, click Delete User, and choose to delete the home
+       folder. macOS asks for your password.
+
+It ends with a line starting with  Done.  Then tell Claude "sitting 2 done".
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+
+  - Screen Sharing shows a black or grey screen after reconnecting: wait 10
+    seconds, then quit and reconnect.
+  - You get stuck at a login window and can't get back in: tell Claude. The
+    laptop's Terminal can still reach the Studio over SSH.
+  - A step doesn't match what you see: do what seems closest, press Return,
+    and tell Claude afterwards which step it was. The script records the time
+    of every step, so nothing is lost.

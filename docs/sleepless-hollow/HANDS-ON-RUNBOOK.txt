@@ -95,12 +95,13 @@ PART C. On the LAPTOP, check that shtest can use Screen Sharing.
   C4. If it shows an error instead, tell Claude.
 
 
-SITTING 1: SSH (about 20 minutes)
+SITTING 1: SSH (about 18 minutes)
 =================================
 
-BEFORE YOU START: the laptop goes offline for about 6 minutes near the end.
-Finish or pause anything online on the laptop first (calls, uploads,
-downloads, meetings). The script also stops and asks before it goes offline.
+BEFORE YOU START: the laptop goes offline for about 5 minutes, about 11
+minutes after you press Return at "Ready?". Save your work and pause anything
+online on the laptop first (calls, uploads, downloads, meetings). The script
+shows this warning in red before it starts.
 
 Screen Sharing: doesn't matter for this sitting. If it's connected, it will
 drop at step 1.8 when the laptop's Wi-Fi goes off. You can reconnect after.
@@ -114,9 +115,8 @@ On the LAPTOP, in Terminal, paste:
 What happens:
   - It runs the preflight checks again, then asks "Ready?". Press Return.
   - After that every step runs on its own, with countdowns. Just watch.
-  - Before step 1.8 it asks "Ready to go offline?". Press Return when you
-    are. Wi-Fi then turns off for about 6 minutes. Don't touch it. The script
-    turns it back on. (If preflight said it can't switch Wi-Fi
+  - At step 1.8 Wi-Fi turns off for about 5 minutes. Don't touch it. The
+    script turns it back on. (If preflight said it can't switch Wi-Fi
     itself, it will ask you to turn Wi-Fi off and on by hand.)
   - It ends with a line starting with  Done.
 

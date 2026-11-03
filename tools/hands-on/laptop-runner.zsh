@@ -120,6 +120,10 @@ sitting1() {
         note "  pkill -f 'ssh .*$STUDIO_HOST'"
         exit 1
     fi
+    print
+    print -P "%F{red}%BThis will take this laptop offline for about 5 minutes, in about 11 minutes.%b%f"
+    print -P "%F{red}%BSave your work and pause anything online (calls, uploads, meetings) now.%b%f"
+    print
     wait_return "Ready?"
     mark 1.start "starting the recorder (one short SSH connection)"
     studio "sh $REMOTE start sitting1 keep-awake" || { note "Could not start the recorder."; exit 1; }
@@ -189,10 +193,8 @@ sitting1() {
     mark 1.7 "sftp closed"
     countdown $HOLD "settling"
 
-    say "Step 1.8: dirty disconnect. This laptop's Wi-Fi goes off for about 6 minutes."
-    note "Calls, uploads, downloads and Screen Sharing on this laptop will drop."
-    note "Save or finish any online work first. The script turns Wi-Fi back on by itself."
-    wait_return "Ready to go offline?"
+    say "Step 1.8: dirty disconnect. Wi-Fi goes off in about 30 seconds, for about 5 minutes."
+    note "Screen Sharing will drop. The script turns Wi-Fi back on by itself."
     find_wifi
     local route_if=$(route -n get "$STUDIO_HOST" 2>/dev/null | awk '/interface:/{print $2}')
     mark 1.8 "long session opened (remote sleep 3h stands in for an idle shell)"
@@ -259,7 +261,7 @@ sitting2() {
     mark 2.2 "reconnected and unlocked"
     countdown $HOLD "holding"
 
-    wait_return "2.3: In the Studio's menu bar, click the user switcher (your name or a person icon) and choose Login Window."
+    wait_return "2.3: In the Studio's menu bar, click the person icon at the top right and choose Login Window."
     mark 2.3 "login window, jeremybrest still logged in"
     countdown 60 "at the login window"
     studio_status 2.3
@@ -267,15 +269,15 @@ sitting2() {
     mark 2.3 "back as jeremybrest"
     countdown $HOLD "holding"
 
-    wait_return "2.4: User switcher > shtest, enter its password, finish any first-login setup screens until you see shtest's desktop."
+    wait_return "2.4: Person icon (top right) > SH Test, enter its password, finish any first-login setup screens until you see shtest's desktop."
     mark 2.4 "shtest on screen, jeremybrest logged in behind"
     countdown $HOLD "holding"
     studio_status 2.4
-    wait_return "User switcher > jeremybrest, enter your password."
+    wait_return "Person icon (top right) > your name, enter your password."
     mark 2.4 "back as jeremybrest, shtest logged in behind"
     countdown $HOLD "holding"
 
-    wait_return "2.5: User switcher > shtest, then Apple menu > Log Out shtest. At the login window, click jeremybrest and log in."
+    wait_return "2.5: Person icon (top right) > SH Test, then Apple menu > Log Out shtest. At the login window, click jeremybrest and log in."
     mark 2.5 "shtest logged out, back as jeremybrest"
     countdown $HOLD "holding"
     studio_status 2.5
