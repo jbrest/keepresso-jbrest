@@ -189,8 +189,10 @@ sitting1() {
     mark 1.7 "sftp closed"
     countdown $HOLD "settling"
 
-    say "Step 1.8: dirty disconnect. Wi-Fi goes off for 5 minutes."
-    note "Screen Sharing will drop. Ignore it; this script keeps running."
+    say "Step 1.8: dirty disconnect. This laptop's Wi-Fi goes off for about 6 minutes."
+    note "Calls, uploads, downloads and Screen Sharing on this laptop will drop."
+    note "Save or finish any online work first. The script turns Wi-Fi back on by itself."
+    wait_return "Ready to go offline?"
     find_wifi
     local route_if=$(route -n get "$STUDIO_HOST" 2>/dev/null | awk '/interface:/{print $2}')
     mark 1.8 "long session opened (remote sleep 3h stands in for an idle shell)"

@@ -1,0 +1,169 @@
+HANDS-ON TESTS: SITTINGS 0, 1 AND 2
+====================================
+
+This is the only file you need for these tests. It is plain text on purpose.
+
+Two machines are involved:
+  STUDIO = the Mac Studio. You see it through the Screen Sharing app.
+  LAPTOP = your MacBook. This is where you type the commands.
+
+How commands are shown in this file:
+  Every command sits alone on a line between two lines of dashes, like this:
+
+  ----------------------------------------
+  echo hello
+  ----------------------------------------
+
+  Copy only the line between the dashes. Paste it into Terminal ON THE
+  LAPTOP and press Return. Never paste a command into the Studio.
+
+  Copying from this file works even though it is open on the Studio:
+  Screen Sharing shares the clipboard. Select the line here, press Cmd-C,
+  click into the laptop's Terminal window, press Cmd-V, then Return.
+
+
+RULES FOR EVERY SITTING
+-----------------------
+
+1. Install nothing. Both machines already have everything needed.
+
+2. VS Code, Claude and Codex on the Studio: leave them open the whole time.
+   Don't ask them to do anything while a sitting is running.
+
+3. Plug the laptop into power. The script stops it sleeping while it runs.
+
+4. During sitting 1, nothing else on the laptop may be connected to the
+   Studio: no other Terminal window logged in to it, no file sharing.
+   (Screen Sharing is fine.)
+
+5. The script runs the timers. It prints a countdown when you should wait.
+   When it prints a yellow line starting with  >>  it wants you to do
+   something. Do it, then come back to the laptop's Terminal and press Return.
+
+6. To stop a sitting early: in the laptop's Terminal, press Ctrl-C.
+   If Wi-Fi was off at that moment, the script turns it back on.
+
+
+SITTING 0: PREPARATION (about 15 minutes)
+=========================================
+
+PART A. On the STUDIO, in the Screen Sharing window, logged in as you.
+
+  A1. Open System Settings > Users & Groups > Add User...
+      - Type of account: Standard
+      - Full name: SH Test
+      - Account name: shtest
+      - Password: anything throwaway. Write it down. You need it in sitting 2.
+      - If macOS asks whether this user may unlock the disk, say yes or no,
+        it doesn't matter. The account is deleted at the end of sitting 2.
+
+  A2. Open System Settings > General > Sharing. Click the (i) next to
+      Screen Sharing. Under "Allow access for", either choose "All users",
+      or click + and add SH Test. Click Done.
+
+  A3. Open System Settings > Control Center. Find "Fast User Switching" and
+      set "Show in Menu Bar" to Always (or switch it on). This puts a user
+      menu at the top right of the Studio's screen. Sitting 2 uses it.
+
+PART B. On the LAPTOP, open the Terminal app (Applications > Utilities).
+
+  Paste this command:
+
+  ----------------------------------------
+  scp jeremybrest@Jeremys-Mac-Studio.local:dev/keepresso-jbrest/tools/hands-on/laptop-runner.zsh ~/ && zsh ~/laptop-runner.zsh preflight
+  ----------------------------------------
+
+  What it does: it copies the test script from the Studio to your laptop's
+  home folder, then runs the script in "preflight" mode. Preflight only
+  checks things and changes nothing:
+    - the laptop can log in to the Studio with your key (no password);
+    - the recorder on the Studio works;
+    - the two clocks agree;
+    - the laptop is on Wi-Fi, so step 1.8 can turn Wi-Fi off and on by itself.
+
+  Expected result: the last line says  Preflight passed.
+  If any line says FAILED, stop and tell Claude what it printed.
+
+PART C. On the LAPTOP, check that shtest can use Screen Sharing.
+        Your normal Screen Sharing window stays open; this is a second one.
+
+  C1. In the Screen Sharing app, choose Connect (or File > New) and enter
+      Jeremys-Mac-Studio.local
+  C2. Sign in with name shtest and its password.
+  C3. If it offers "Log in as yourself" or "Ask for permission", click
+      Cancel. Seeing that offer means it works.
+  C4. If it shows an error instead, tell Claude.
+
+
+SITTING 1: SSH (about 20 minutes)
+=================================
+
+BEFORE YOU START: the laptop goes offline for about 6 minutes near the end.
+Finish or pause anything online on the laptop first (calls, uploads,
+downloads, meetings). The script also stops and asks before it goes offline.
+
+Screen Sharing: doesn't matter for this sitting. If it's connected, it will
+drop at step 1.8 when the laptop's Wi-Fi goes off. You can reconnect after.
+
+On the LAPTOP, in Terminal, paste:
+
+  ----------------------------------------
+  zsh ~/laptop-runner.zsh 1
+  ----------------------------------------
+
+What happens:
+  - It runs the preflight checks again, then asks "Ready?". Press Return.
+  - After that every step runs on its own, with countdowns. Just watch.
+  - Before step 1.8 it asks "Ready to go offline?". Press Return when you
+    are. Wi-Fi then turns off for about 6 minutes. Don't touch it. The script
+    turns it back on. (If preflight said it can't switch Wi-Fi
+    itself, it will ask you to turn Wi-Fi off and on by hand.)
+  - It ends with a line starting with  Done.
+
+After it ends:
+  - A recorder keeps running on the Studio for up to 4 hours, and keeps the
+    Studio awake meanwhile. This is on purpose: it measures how long a dead
+    connection lingers. You don't need to do anything.
+  - Tell Claude "sitting 1 done". Claude reads the results.
+  - Wait at least 2.5 hours before sitting 2, or do sitting 2 another day.
+
+
+SITTING 2: SCREEN SHARING AND LOGINS (about 40 minutes)
+=======================================================
+
+Before you start:
+  - Connect Screen Sharing to the Studio as yourself.
+  - Have the shtest password ready.
+  - Arrange the laptop's screen so you can see both the Terminal window and
+    the Screen Sharing window.
+
+On the LAPTOP, in Terminal, paste:
+
+  ----------------------------------------
+  zsh ~/laptop-runner.zsh 2
+  ----------------------------------------
+
+The script tells you each action in a yellow  >>  line. In this sitting you
+will, in order:
+  - quit Screen Sharing (Cmd-Q while it's the front app) and reopen it;
+  - lock the Studio's screen (Ctrl-Cmd-Q inside the Screen Sharing window),
+    quit Screen Sharing, then reconnect and unlock;
+  - use the user menu at the top right of the Studio to go to the
+    Login Window, then log back in;
+  - switch to shtest and back to you;
+  - log shtest out;
+  - open a second, separate Screen Sharing session as shtest, close it,
+    reopen it and log shtest out;
+  - delete shtest: System Settings > Users & Groups > click (i) next to
+    SH Test > Delete User, and choose to delete the home folder.
+
+Each time: do the action in the Screen Sharing window, then click back into
+the laptop's Terminal and press Return.
+
+It ends with a line starting with  Done.  Tell Claude "sitting 2 done".
+
+
+IF CLAUDE CHANGES THE SCRIPT
+============================
+
+Paste the long command from Sitting 0, Part B again. It fetches the new copy.
